@@ -1,0 +1,23 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Cortex Debug: AT32F455RET7",
+            "cwd": "${workspaceFolder}",
+            "executable": "./project/build/MyMotor.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "jlink",
+            "device": "AT32F455RET7",
+            "interface": "swd",
+            "overrideLaunchCommands": [
+                "monitor speed 4000"
+            ]
+        }
+    ]
+}

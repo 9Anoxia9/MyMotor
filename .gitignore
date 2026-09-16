@@ -1,0 +1,10 @@
+# 编译产物
+project/build/
+*.obj
+*.o
+*.elf
+*.hex
+*.map
+
+# 崩溃转储
+bash.exe.stackdump

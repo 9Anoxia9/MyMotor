@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:/DevelopTool/gcc-arm-none-eabi-10-2020-q4-major/arm-none-eabi/include"
+            ],
+            "defines": [
+                "AT32F455RET7"
+            ],
+            "compilerPath": "D:/DevelopTool/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm",
+            "compileCommands": "${workspaceFolder}/project/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

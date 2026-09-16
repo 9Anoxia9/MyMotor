@@ -1,0 +1,15 @@
+get_filename_component(N32_MODULE_PATH ${CMAKE_CURRENT_LIST_FILE} DIRECTORY)
+list(APPEND CMAKE_MODULE_PATH ${N32_MODULE_PATH})
+
+#在这里包含这两个CMAKE脚本。由于CMakeLists.txt中
+#通过设置变量CMAKE_TOOLCHAIN_FILE指向来该脚本,因
+#此CMakeLists.txt中也包含了这两个脚本
+include(AT32/common)
+include(AT32/AT32F455RET7)
+
+#指定相应语言的源文件被CMAKE生成可执行文件时的后缀名
+set(CMAKE_EXECUTABLE_SUFFIX_C   .elf)
+set(CMAKE_EXECUTABLE_SUFFIX_CXX .elf)
+set(CMAKE_EXECUTABLE_SUFFIX_ASM .elf)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER) 
