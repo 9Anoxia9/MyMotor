@@ -3,27 +3,33 @@
 
 #include "utils.hpp"
 
+struct adc_phUVW {uint16_t u;uint16_t v;uint16_t w;}; 
 struct I_phUVW {float iu;float iv;float iw;}; 
 struct I_alpha_beta {float mod_a;float mod_b;}; 
 
 class PhaseCtrlLaw{
 public:
+
+    virtual void init() = 0;
+
     virtual void reset() = 0;
 
     virtual void update(uint32_t ctrl_timestamp) = 0;
 
-    virtual void measure_i(uint32_t i_timestamp,I_phUVW* i_ph) = 0;
+    virtual void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph) = 0;
 
     virtual void get_out(uint32_t output_timestamp,I_alpha_beta* alpha_beta) = 0;
 };
 
 class FOC : public PhaseCtrlLaw{
 public:
+    void init();
+
     void reset();
 
     void update(uint32_t ctrl_timestamp) final;
 
-    void measure_i(uint32_t i_timestamp,I_phUVW* i_ph);
+    void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph);
 
     void get_out(uint32_t output_timestamp,I_alpha_beta* mod_alpha_beta);
 
@@ -53,11 +59,13 @@ public:
 
 class VFControl : public PhaseCtrlLaw{
 public:
+        void init();
+        
         void reset();
 
         void update(uint32_t ctrl_timestamp) final;
 
-        void measure_i(uint32_t i_timestamp,I_phUVW* i_ph){}
+        void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph){}
 
         void get_out(uint32_t output_timestamp,I_alpha_beta* alpha_beta);
 

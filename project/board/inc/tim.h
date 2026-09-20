@@ -15,7 +15,7 @@ extern "C" {
 #define TIM1_8_PERIOD       (APB2CLK_FEQ/(TIM1_8_FRQ<<1))       //20.8us
 #define TIM1_8_RPR          2                                   //62.5us
 #define TIM1_8_DEADTIME     100
-#define TIM1_CNT_START      (TIM1_8_PERIOD/2)
+#define TIM1_CNT_START      (TIM1_8_PERIOD/2 - 384)
 
 #define TIM13_FRQ           20000
 #define TIM13_PERIOD        (APB1CLK_FEQ/(TIM13_FRQ))

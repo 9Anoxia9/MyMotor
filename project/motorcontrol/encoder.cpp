@@ -110,10 +110,10 @@ void Encoder::update(){
     _pos_est = (float)_total_pos_cnt/_config.cpr;      //turn
     _vel_est = _vel_est_cnt/_config.cpr;        //turn/s
 
-    
+    int32_t correct_cnt_in_cpr = (int32_t)_cnt_in_cpr - (int32_t)_config.phase_offset_cpr;
     float elec_rad_per_enc = 2*PI*7/_config.cpr;
-    float ph = _pos_est*elec_rad_per_enc;
+    float ph = correct_cnt_in_cpr*elec_rad_per_enc;
 
-    _phase = wrap_pi(ph);
-    _phase_vel = _vel_est*2*PI*7;
+    _phase = wrap_pi(ph)*_config.direction;
+    _phase_vel = _vel_est*2*PI*7*_config.direction;
 }

@@ -13,6 +13,7 @@
 
 #define MAX_VOLTAGE         24.0f
 #define MOTOR_CURRENT_RES   0.005f
+#define AMP_GAIN            50.0f
 
 #define AXIS_COUNT          1
 
@@ -72,7 +73,7 @@ enum gpio_idx{
 
 static inline uint32_t enter_critical(){
     uint32_t basepri = __get_BASEPRI();
-
+    __set_BASEPRI(configMAX_SYSCALL_INTERRUPT_PRIORITY);
     return basepri;
 }
 

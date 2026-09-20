@@ -29,6 +29,8 @@ public:
         float _phase_vel = 0.0f;        //rad/s
         float _phase = 0.0f;            //rad
 
+        float _total_turn = 0.0f;
+
         Axis* _axis = nullptr;
         
 };

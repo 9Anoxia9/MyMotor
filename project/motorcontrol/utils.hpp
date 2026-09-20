@@ -14,6 +14,12 @@
 #define TWO_BY_SQRT3    1.1547005f       // 2/√3
 
 
+template <typename T>
+constexpr T SQ(const T& x){
+    return x*x;
+}
+
+
 static inline float wrap_pos(float x,int32_t range){
     if(x >= range){
         x -= range;
@@ -41,7 +47,14 @@ static inline float wrap_half(float x,int32_t range){
     return x;
 }
 
+static inline int32_t multple_roundf(float x,float y){
+    return (int32_t)lroundf(x/y);
+}
+
 static inline float wrap_pi(float x){
+
+    x = x - multple_roundf(x,2*PI)*2*PI;
+
     if(x > PI){
         x -= 2*PI;
     }else if( x < (-PI) ){

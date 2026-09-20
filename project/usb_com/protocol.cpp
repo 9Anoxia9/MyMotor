@@ -17,6 +17,19 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
     uint8_t len = 0;
 
     switch(keyword){
+        case 0x01:{
+                    Axis::AxisStatus* rd_ptr;
+                    uint8_t tmp;
+
+                    rd_ptr = get_axis_status(&axes[0]);
+
+                    tmp = (uint8_t)(*rd_ptr);
+
+                    *buf = U8;
+                    memcpy(buf + 1,&tmp,sizeof(uint8_t));
+                    len = sizeof(uint8_t) + 1;
+                    break;
+        }
         case 0x05:{
                     float* rd_ptr;
                     rd_ptr = get_motor_iu_ptr(&mt);
@@ -45,12 +58,12 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     break;
         }
         case 0x11:{
-                    uint16_t* rd_ptr;
-                    rd_ptr = get_encoder_cnt_in_cpr_ptr(&encoder);
+                    float* rd_ptr;
+                    rd_ptr = get_encoder_phase_ptr(&encoder);
 
-                    *buf = U16;
-                    memcpy(buf + 1,rd_ptr,sizeof(uint16_t));
-                    len = sizeof(uint16_t) + 1;
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
                     break;
         }
         case 0x12:{
@@ -84,6 +97,15 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
     uint8_t len = 0;
 
     switch(keyword){
+        case 0x01:{ //axis status
+            if(type != U8) return 0xFF;
+            len = sizeof(U8); 
+
+            uint8_t status = *buf;
+
+            set_axis_status(&axes[0],(Axis::AxisStatus)status);
+            break;
+        }
         case 0x20:{
                     float turn_vel;
 
@@ -108,18 +130,38 @@ void osc_handle(uint8_t* keyword,uint8_t len){
     for(uint8_t i = 0;i < len;i++){
         switch(keyword[i]){
             case 0x05:{
+                #if (SAMPLE_I_ADC_ENABLE == 1)
+                ptr[i] = get_motor_u_adc_ptr(&mt);
+                #else
                 ptr[i] = get_motor_iu_ptr(&mt);
+                #endif
                 break;
             }
             case 0x06:{
+                #if (SAMPLE_I_ADC_ENABLE == 1)
+                ptr[i] = get_motor_v_adc_ptr(&mt);
+                #else
                 ptr[i] = get_motor_iv_ptr(&mt);
+                #endif
                 break;
             }
             case 0x07:{
+                #if (SAMPLE_I_ADC_ENABLE == 1)
+                ptr[i] = get_motor_w_adc_ptr(&mt);
+                #else
                 ptr[i] = get_motor_iw_ptr(&mt);
+                #endif
                 break;
             }
 
+            case 0x10:{
+                ptr[i] = get_encoder_phase_ptr(&encoder);
+                break;
+            }
+            case 0x11:{
+                ptr[i] = get_encoder_phase_vel_ptr(&encoder);
+                break;
+            }
             case 0x12:{
                 ptr[i] = get_encoder_pos_est_ptr(&encoder);
                 break;
@@ -168,7 +210,7 @@ void Protocol::task(void* ctx){
 void Protocol::init(){
 
     _sem = xSemaphoreCreateBinary();
-    xTaskCreate(this->task,"Prot",configMINIMAL_STACK_SIZE*2,this,3,&(this->_task));
+    xTaskCreate(this->task,"Prot",configMINIMAL_STACK_SIZE*2,this,2,&(this->_task));
 
     _prot_head = prot_head;
     _prot_head_len = sizeof(prot_head)/sizeof(prot_head[0]);
@@ -396,7 +438,7 @@ void Protocol::analyse_frame(){
     }
 }
 
-void my_prot_init(){
+void my_protocol_init(){
     my_prot.init();
 }
 

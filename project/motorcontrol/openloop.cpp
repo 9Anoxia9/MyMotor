@@ -21,6 +21,8 @@ void OpenloopVF::update(){
     _phase += _phase_vel*CTRL_DT;
     _phase = wrap_pi(_phase);
 
+    _total_turn += _cur_vel*CTRL_DT;
+
     /**
      * 这里用1/√3而不是2/3是因为用2/3会过早进入过调制区
      * 而电机常数KV是在线性情况下测出的

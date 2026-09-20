@@ -26,11 +26,14 @@ Motor mt(TMR1);
 
 Encoder encoder(spi3_intf);
 
+Control control;
+
 std::array<Axis,AXIS_COUNT> axes{{
     {
         0,
         encoder,
-        mt
+        mt,
+        control
     }
 }};
 
@@ -109,7 +112,7 @@ float phase_i_from_adcval(uint16_t adcval){
 
     float v_to_resolution = 3.3f/(1<<12);
 
-    return (float)adcval_i*v_to_resolution/MOTOR_CURRENT_RES;
+    return (float)adcval_i*v_to_resolution/AMP_GAIN/MOTOR_CURRENT_RES;
     
 }
 
@@ -117,21 +120,29 @@ bool fetch_phase_current(std::optional<I_phUVW>* current0,
                             std::optional<I_phUVW>* current1){
 
     bool adc_finish = (adc_flag_get(ADC1, ADC_PCCE_FLAG) == SET)
-                        && (adc_flag_get(ADC1, ADC_OCCE_FLAG))
-                        && (adc_flag_get(ADC2, ADC_PCCE_FLAG))
-                        && (adc_flag_get(ADC2, ADC_OCCE_FLAG));
+                        && (adc_flag_get(ADC1, ADC_OCCE_FLAG) == SET)
+                        && (adc_flag_get(ADC2, ADC_PCCE_FLAG) == SET)
+                        && (adc_flag_get(ADC2, ADC_OCCE_FLAG) == SET);
 
     if(adc_finish == false){
         return adc_finish;
     }
 
-    float ib0 = phase_i_from_adcval(adc_preempt_conversion_data_get(ADC1, ADC_PREEMPT_CHANNEL_1));
-    float ic0 = phase_i_from_adcval(adc_preempt_conversion_data_get(ADC2, ADC_PREEMPT_CHANNEL_1));
+    float tmp_m0_v = adc_preempt_conversion_data_get(ADC1, ADC_PREEMPT_CHANNEL_1);
+    float tmp_m0_w = adc_preempt_conversion_data_get(ADC2, ADC_PREEMPT_CHANNEL_1);
+
+    if(get_tmr_cnt_dir(TMR8) == CNT_UP_DIR){
+        mt._adc_val.iv = (float)tmp_m0_v;
+        mt._adc_val.iw = (float)tmp_m0_w;
+    }
+
+    float ib0 = phase_i_from_adcval(tmp_m0_v);
+    float ic0 = phase_i_from_adcval(tmp_m0_w);
     float ib1 = phase_i_from_adcval(adc_ordinary_conversion_data_get(ADC1));
     float ic1 = phase_i_from_adcval(adc_ordinary_conversion_data_get(ADC2));
 
-    *current0 = {-ib0-ic0,ib0,ic0};
-    *current1 = {-ib1-ic1,ib1,ic1};
+    *current0 = {ib0+ic0,-ib0,-ic0};
+    *current1 = {ib1+ic1,-ib1,-ic1};
 
     return true;
 }
@@ -179,7 +190,7 @@ void ADC1_2_IRQHandler(void){
         adc_flag_clear(ADC1, ADC_OCCE_FLAG);
     }
     if(adc_interrupt_flag_get(ADC2, ADC_OCCE_FLAG) != RESET){
-        #if 1
+        #if 0
         if(gpios[CLK_IO].read_output()){
             gpios[CLK_IO].write(0);
         }else{
@@ -191,7 +202,7 @@ void ADC1_2_IRQHandler(void){
 
     //抢占
     if(adc_interrupt_flag_get(ADC1, ADC_PCCE_FLAG) != RESET){
-        #if 0
+        #if 1
         if(gpios[CLK_IO].read_output()){
             gpios[CLK_IO].write(0);
         }else{
@@ -202,7 +213,7 @@ void ADC1_2_IRQHandler(void){
     }
 
     if(adc_interrupt_flag_get(ADC2, ADC_PCCE_FLAG) != RESET){
-        #if 1
+        #if 0
         if(gpios[CLK_IO].read_output()){
             gpios[CLK_IO].write(0);
         }else{
@@ -266,6 +277,8 @@ void Ctrl_Loop_Handler(){
     if(fetch_phase_current(&current0,&current1) == false){
         mt.disarm();
     }
+    mt.measure_current(_timestamp - TIM1_CNT_START,current0);
+
 
     encoder.update();
     mt.update();
@@ -283,7 +296,20 @@ void Ctrl_Loop_Handler(){
         axis._mt._current_control_law.update(_timestamp);
     }
 
+    //硬等
+    while(adc_flag_get(ADC2, ADC_OCCE_FLAG) == RESET);
+    
+    if(fetch_phase_current(&current0,&current1) == false){
+        mt.disarm();
+    }
+    
+    mt.dc_cali_update(current0);
+
     mt.pwm_update(_timestamp + 3*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
+
+    for(auto& axis:axes){
+        axis.thread_wakeup();
+    }
 }
 
 }

@@ -27,6 +27,8 @@ public:
         float pll_bandwidth = 1000;     //rad
         float pll_kp = 2*pll_bandwidth;
         float pll_ki = pll_bandwidth*pll_bandwidth;
+
+        float direction = 1.0f;
     };
 
     Encoder(Spi& spi):_spi(spi){}
@@ -50,6 +52,7 @@ public:
 
     float _phase;
     float _phase_vel;
+    float _direction = 1.0f;
 
     void init();
 
@@ -83,8 +86,13 @@ static inline uint16_t* get_encoder_abs_ncs_gpio_pin_ptr(Encoder* enc){
         return ptr_r;
 }
 
-static inline uint16_t* get_encoder_cnt_in_cpr_ptr(Encoder* enc){
-        uint16_t* ptr_r = &(enc->_cnt_in_cpr);
+static inline float* get_encoder_phase_ptr(Encoder* enc){
+        float* ptr_r = &(enc->_phase);
+        return ptr_r;
+}
+
+static inline float* get_encoder_phase_vel_ptr(Encoder* enc){
+        float* ptr_r = &(enc->_phase_vel);
         return ptr_r;
 }
 

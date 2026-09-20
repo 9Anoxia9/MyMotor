@@ -12,12 +12,17 @@ class Axis;
 class Motor {
 public:
         struct Config_t{
-            uint8_t pole_pair = 7;      //7对极
-            uint8_t R = 0.12f;          //0.12R
-            uint8_t L = 0.00005;        //50uH
-            float bandwidth = 6300;     //rad/s 1002Hz
-            
-            float dc_cail_tau = 2*PI;   //对应1Hz
+            uint8_t pole_pair = 7;                 //7对极
+            float R = 0.21413984894752502f;        //0.12R
+            float L = 0.000054197236750042066f;    //50uH
+
+            float tuque_const = 60.0f/2/PI/360;
+
+            float bandwidth = 2000;     //rad/s 1002Hz 6300
+
+            float dc_cail_tau = 1.0f/(2.0f*PI);   //对应1Hz
+
+            float max_current = 5.0f;   //A
         };
 
         Motor(tmr_type* tmr):_tmr(tmr){}
@@ -26,7 +31,7 @@ public:
 
         void update_current_control_law_pi_gain();
 
-        void measure_current(std::optional<I_phUVW> current);
+        void measure_current(uint32_t timestamp,std::optional<I_phUVW> current);
 
         void dc_measure_noise(std::optional<I_phUVW> current);
 
@@ -42,29 +47,34 @@ public:
 
         Config_t  _config;
 
+
+        //测量校准电流值
+        I_phUVW _i_pha;
+        I_phUVW _adc_val;
+        std::optional<I_phUVW> _measure_i;
+        
+
+        //直流偏置基准值
+        I_phUVW _dc_cail_i = {0.0f};
+        float _dc_cail_elapsed_time = 0.0f;
+
+        //测量量化噪声
         uint32_t _dc_cail_cnt  = 0;
         I_phUVW _dc_cail_sum = {0.0f};
-        std::optional<I_phUVW> _dc_cali_avrg;
-        std::optional<I_phUVW> _dc_cali_sigma_noise;  
+        std::optional<I_phUVW> _dc_cali_avrg = std::nullopt;
+        std::optional<I_phUVW> _dc_cali_sigma_noise = std::nullopt;  
 
         //电机状态
-        bool is_armed = false;
+        bool _is_armed = false;
 
         //外部输入
-        float *_phase_src = nullptr;         //电角度rad
         float *_phase_vel_src = nullptr;     //电角速度rad/s
-        float *_vd_set_src = nullptr;
-        float *_vq_set_src = nullptr;
-        float *_id_set_src = nullptr;            //由外部输入设置    
-        float *_iq_set_src = nullptr;            //由外部输入设置
-
-        I_phUVW _i_pha;
+        float *_id_set_src = nullptr;        //由外部输入设置    
+        float *_iq_set_src = nullptr;        //由外部输入设置
 
         //输出
         float _vd_set = 0.0f;            
         float _vq_set = 0.0f;
-        float _id_set = 0.0f;
-        float _iq_set = 0.0f;
 
         FOC _current_control_law;                //电流控制律
         VFControl _vf_open_control_law;          //VF开环控制律
@@ -76,6 +86,21 @@ public:
 private:
         tmr_type* _tmr;
 };
+
+static inline float* get_motor_u_adc_ptr(Motor* mt){
+        float* ptr_r = &(mt->_adc_val.iu) ;
+        return ptr_r;
+}
+
+static inline float* get_motor_v_adc_ptr(Motor* mt){
+        float* ptr_r = &(mt->_adc_val.iv);
+        return ptr_r;
+}
+
+static inline float* get_motor_w_adc_ptr(Motor* mt){
+        float* ptr_r = &(mt->_adc_val.iw);
+        return ptr_r;
+}
 
 static inline float* get_motor_iu_ptr(Motor* mt){
         float* ptr_r = &(mt->_i_pha.iu) ;

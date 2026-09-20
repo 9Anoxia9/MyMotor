@@ -5,6 +5,8 @@
 #include "protocol.hpp"
 
 
+TaskHandle_t main_task_handle;
+
 extern "C"{
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,char * pcTaskName )
@@ -21,9 +23,18 @@ void sample(){
 void motor_ctrl_init(){
     encoder.init();
 
-    /*for (auto& axis: axes){
-        axis.run_open_loop();
-    }*/
+    for (auto& axis: axes){
+        axis.init();
+    }
+}
+
+void main_task(void* ctx){
+
+    motor_ctrl_init();
+
+    start_timer();
+
+    vTaskDelete(NULL);
 }
 
 extern "C" int main(void) {
@@ -36,11 +47,13 @@ extern "C" int main(void) {
 
     log_init();
 
-    my_prot_init();
+    my_protocol_init();
 
     motor_ctrl_init();
 
     start_timer();
+
+    //xTaskCreate(main_task,"main",LOG_STACK_SIZE,NULL,1,&main_task_handle);
 
     uint32_t heap_free = xPortGetFreeHeapSize();
     (void)heap_free; //堆的空闲字节

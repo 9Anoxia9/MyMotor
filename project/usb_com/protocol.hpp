@@ -13,6 +13,8 @@
 #define FRAME_LENE_SIZ      1
 #define RX_FRAME_MAX_LEN    16
 
+#define SAMPLE_I_ADC_ENABLE 0
+
 typedef enum command_word{
     PROT_QUERY  =   0x01,
     PROT_SET    =   0x02,
@@ -99,7 +101,7 @@ private:
 };
 
 
-void my_prot_init();
+void my_protocol_init();
 Protocol& get_my_prot();
 
 #endif
