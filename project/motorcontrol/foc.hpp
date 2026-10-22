@@ -48,9 +48,13 @@ public:
     float* _phase_vel_src;  //当前电角速度
     float* _phase_src;      //当前角度
 
-    //采样转换
+    //采样转换,记录值,用于上位机读取
     float _i_alpha;
     float _i_beta;
+    float _id_feedback = 0.0f;
+    float _iq_feedback = 0.0f;
+    float _mod_d = 0.0f;
+    float _mod_q = 0.0f;
 
     //时刻
     uint32_t _i_timestamp;
@@ -77,5 +81,8 @@ public:
         uint32_t _i_timestamp;
         uint32_t _ctrl_timestamp;
 };
+
+
+
 
 #endif

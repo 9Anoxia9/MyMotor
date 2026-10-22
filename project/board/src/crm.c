@@ -50,6 +50,8 @@ void system_clock_config_192mhz(void)
   /* config pll clock source */
   crm_pll_config(CRM_PLL_SOURCE_HICK, pll_ns, pll_ms, (crm_pll_fp_type)pll_fp);
 
+  crm_pllu_div_set(CRM_PLL_FU_16);
+
   /* enable pll */
   crm_clock_source_enable(CRM_CLOCK_SOURCE_PLL, TRUE);
 

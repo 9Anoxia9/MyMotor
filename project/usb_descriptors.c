@@ -76,9 +76,12 @@ uint8_t const *tud_descriptor_device_cb(void) {
 //--------------------------------------------------------------------+
 
 enum {
+#ifdef ENABLE_USB_LOG
   ITF_NUM_LOG = 0,
   ITF_NUM_LOG_DATA, 
-  ITF_NUM_CDC,
+#else
+  ITF_NUM_CDC = 0,
+#endif
   ITF_NUM_CDC_DATA, 
   ITF_NUM_TOTAL
 };
@@ -134,7 +137,11 @@ enum {
 
 #endif
 
+#ifdef ENABLE_USB_LOG
 #define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN*2)
+#else
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN*1)
+#endif
 
 static uint8_t const desc_fs_configuration[] =
 {
@@ -142,10 +149,12 @@ static uint8_t const desc_fs_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
+  #ifdef ENABLE_USB_LOG
   TUD_CDC_DESCRIPTOR(ITF_NUM_LOG, 4, EPNUM_LOG_NOTIF, 16, EPNUM_LOG_OUT, EPNUM_LOG_IN, 64),
-
-  // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 16, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+  #else
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 16, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+  #endif
 };
 
 #if TUD_OPT_HIGH_SPEED
@@ -242,7 +251,9 @@ static char const *string_desc_arr[] = {
   "TinyUSB",                     // 1: Manufacturer
   "TinyUSB Device",              // 2: Product
   NULL,                          // 3: Serials will use unique ID if possible
+#ifdef ENABLE_USB_LOG
   "TinyUSB LOG",                 // 4: CDC LOG Interface
+#endif
   "TinyUSB CDC",                 // 5: CDC Interface
 };
 

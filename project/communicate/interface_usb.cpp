@@ -16,7 +16,10 @@ static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 TaskHandle_t USBHandler = NULL;
 TaskHandle_t LedHandler = NULL;
 
+#ifdef ENABLE_USB_LOG
 UsbCdcBackend usb_logbackend(CDC_LOG_ITF);
+#endif
+
 UsbCdcBackend usb_protocol_backend(CDC_BIT_ITF);
 
 

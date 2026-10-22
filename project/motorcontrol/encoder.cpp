@@ -82,7 +82,16 @@ void Encoder::update(){
         }else{
 
         }
-        
+
+        float mech_rad = (float)sample_cnt_in_cpr * 2.0f * PI / (float)_config.cpr;
+        int32_t comp = (int32_t)lroundf(45.0f * arm_sin_f32(4.0f * mech_rad + _config._err4_phase));
+        sample_cnt_in_cpr -= comp;
+        if(sample_cnt_in_cpr < 0){
+            sample_cnt_in_cpr += (int32_t)_config.cpr;
+        }else if(sample_cnt_in_cpr >= (int32_t)_config.cpr){
+            sample_cnt_in_cpr -= (int32_t)_config.cpr;
+        }
+
         delta_pos = sample_cnt_in_cpr - _cnt_in_cpr;
         /**
          * 将delta_pos映射到[-cpr/2,cpr/2]。在分辨率16384的情况下,125us不可能
@@ -107,8 +116,9 @@ void Encoder::update(){
 
     _vel_est_cnt += _pll_ki * delta_cpr_pos * CTRL_DT;   //单圈误差小,多圈存在误差累积
 
-    _pos_est = (float)_total_pos_cnt/_config.cpr;      //turn
-    _vel_est = _vel_est_cnt/_config.cpr;        //turn/s
+    _pos_est = (float)_total_pos_cnt/_config.cpr;       //turn
+    _vel_est = _vel_est_cnt/_config.cpr;                //turn/s
+    //_vel_est = (float)delta_pos/(float)_config.cpr/CTRL_DT;
 
     int32_t correct_cnt_in_cpr = (int32_t)_cnt_in_cpr - (int32_t)_config.phase_offset_cpr;
     float elec_rad_per_enc = 2*PI*7/_config.cpr;

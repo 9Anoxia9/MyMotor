@@ -42,6 +42,8 @@ void FOC::get_out(uint32_t output_timestamp,I_alpha_beta* mod_alpha_beta){
     float phase = _phase + _phase_vel*((float)(int32_t)(_i_timestamp-_ctrl_timestamp)/(float)TIM1_8_SRC_FRQ);
     float id = _i_alpha*arm_cos_f32(phase) + _i_beta*arm_sin_f32(phase);
     float iq = -_i_alpha*arm_sin_f32(phase) + _i_beta*arm_cos_f32(phase);
+    _id_feedback = id;
+    _iq_feedback = iq;
 
 
     float max_ph_vol_inv = 1/(MAX_VOLTAGE*TWO_BY_3);   //最大相电压的倒数.
@@ -64,6 +66,9 @@ void FOC::get_out(uint32_t output_timestamp,I_alpha_beta* mod_alpha_beta){
         _integral_d += _ki * Id_err * CTRL_DT;
         _integral_q += _ki * Iq_err * CTRL_DT; 
     }
+    //此处记录数据，用于打印
+    _mod_d = mod_d;
+    _mod_q = mod_q;
 
     _phase += _phase_vel*((float)(int32_t)(output_timestamp - _ctrl_timestamp)/(float)TIM1_8_SRC_FRQ);
     phase = wrap_pi(_phase);

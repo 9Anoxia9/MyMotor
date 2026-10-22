@@ -57,12 +57,12 @@ target_link_libraries(tinyusb PUBLIC
         config
 )
 
-######################以上为第三方
+#以上为第三方
 
-######################以下为本项目源代码管理
+#以下为本项目源代码管理
 add_subdirectory(board)
 add_subdirectory(drivers)
-add_subdirectory(usb_com)
+add_subdirectory(communicate)
 add_subdirectory(motorcontrol)
 
 if(ENABLE_MY_DEBUG)
@@ -78,6 +78,8 @@ target_link_libraries(board PUBLIC
     DRIVER::MISC
     DRIVER::ACC
     DRIVER::CRC
+    DRIVER::DMA
+    DRIVER::USART
     at32_driver_wrap
     motorctrl
 )

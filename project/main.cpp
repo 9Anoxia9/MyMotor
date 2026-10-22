@@ -11,7 +11,10 @@ extern "C"{
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,char * pcTaskName )
 {
+    UBaseType_t stack_use_size = 0;
+    stack_use_size = uxTaskGetStackHighWaterMark(NULL);
     for(;;);
+    (void)stack_use_size;
 }
 
 }
@@ -22,6 +25,8 @@ void sample(){
 
 void motor_ctrl_init(){
     encoder.init();
+
+    control.init();
 
     for (auto& axis: axes){
         axis.init();
@@ -35,6 +40,13 @@ void main_task(void* ctx){
     start_timer();
 
     vTaskDelete(NULL);
+}
+
+void period_print(void* ctx){
+    while(1){
+        LOG("Hello World!\n");
+        vTaskDelay(1000);
+    }
 }
 
 extern "C" int main(void) {
@@ -53,7 +65,7 @@ extern "C" int main(void) {
 
     start_timer();
 
-    //xTaskCreate(main_task,"main",LOG_STACK_SIZE,NULL,1,&main_task_handle);
+    xTaskCreate(period_print,"period_log",configMINIMAL_STACK_SIZE*2,NULL,configMAX_PRIORITIES - 1,NULL);
 
     uint32_t heap_free = xPortGetFreeHeapSize();
     (void)heap_free; //堆的空闲字节

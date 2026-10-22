@@ -19,6 +19,8 @@ void usb_clock48m_select(usb_clk48_s clk_s)
   }
   else
   {
+    crm_pllu_output_set(TRUE);
+
     crm_usb_clock_source_select(CRM_USB_CLOCK_SOURCE_PLLU);
   }
 }

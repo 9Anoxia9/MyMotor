@@ -93,12 +93,22 @@ extern "C" {
 #define CAN1_RX_SRC      GPIO_PINS_SOURCE8
 #define CAN1_TX_SRC      GPIO_PINS_SOURCE9
 
+//usart io
+#define USART2_MUX       GPIO_MUX_7
+#define USART2_IO_PORT   GPIOA
+#define USART2_IO_CLK    CRM_GPIOA_PERIPH_CLOCK
+#define USART2_TX        GPIO_PINS_2
+#define USART2_RX        GPIO_PINS_3
+#define USART2_TX_SRC    GPIO_PINS_SOURCE2
+#define USART2_RX_SRC    GPIO_PINS_SOURCE3
+
 void adc_gpio_init(void);
 void m0_pwm_gpio_init(void);
 void m1_pwm_gpio_init(void);
 void aux_pwm_gpio_init(void);
 void spi3_gpio_init(void);
 void can_gpio_init(void);
+void usart2_gpio_init(void);
 
 
 #if __cplusplus

@@ -18,6 +18,8 @@ public:
     virtual uint32_t write(void const* buf, uint32_t size)= 0;
 
     virtual uint32_t flush() = 0;
+
+    virtual void init() {}
 };
 
 template<typename T,size_t N>

@@ -17,6 +17,7 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
     uint8_t len = 0;
 
     switch(keyword){
+        //AXIS
         case 0x01:{
                     Axis::AxisStatus* rd_ptr;
                     uint8_t tmp;
@@ -30,6 +31,8 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     len = sizeof(uint8_t) + 1;
                     break;
         }
+
+        //MOTOR
         case 0x05:{
                     float* rd_ptr;
                     rd_ptr = get_motor_iu_ptr(&mt);
@@ -57,7 +60,83 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     len = sizeof(float) + 1;
                     break;
         }
-        case 0x11:{
+        case 0x08:{ //id_set
+                    float* rd_ptr;
+                    rd_ptr = get_motor_id_set(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x09:{ //iq_set
+                    float* rd_ptr;
+                    rd_ptr = get_motor_iq_set(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x0A:{ //id_feedback
+                    float* rd_ptr;
+                    rd_ptr = get_motor_id_feedback(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x0B:{ //iq_feedback
+                    float* rd_ptr;
+                    rd_ptr = get_motor_iq_feedback(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x0C:{ //ia_feedback
+                    float* rd_ptr;
+                    rd_ptr = get_motor_ia_feedback(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x0D:{ //ib_feedback
+                    float* rd_ptr;
+                    rd_ptr = get_motor_ib_feedback(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+
+
+        case 0x010:{ //mod_d
+                    float* rd_ptr;
+                    rd_ptr = get_motor_mod_d(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x011:{ //mod_q
+                    float* rd_ptr;
+                    rd_ptr = get_motor_mod_q(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+
+        //encoder
+        case 0x12:{ //phase
                     float* rd_ptr;
                     rd_ptr = get_encoder_phase_ptr(&encoder);
 
@@ -66,7 +145,7 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     len = sizeof(float) + 1;
                     break;
         }
-        case 0x12:{
+        case 0x13:{ //pos
                     float* rd_ptr;
                     rd_ptr = get_encoder_pos_est_ptr(&encoder);
 
@@ -75,7 +154,7 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     len = sizeof(float) + 1;
                     break;
             }
-        case 0x13:{
+        case 0x14:{ //vel
                     float* rd_ptr;
                     rd_ptr = get_encoder_vel_est_ptr(&encoder);
 
@@ -104,6 +183,7 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
             uint8_t status = *buf;
 
             set_axis_status(&axes[0],(Axis::AxisStatus)status);
+            axes[0].thread_wakeup();
             break;
         }
         case 0x20:{
@@ -115,6 +195,41 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
                     memcpy(&turn_vel,buf,len);
 
                     set_openloop_target_vel(&axes[0],turn_vel);
+                    break;
+        }
+
+        //control
+        case 0x30:{ //input pos
+                    float input_pos;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&input_pos,buf,len);
+
+                    set_control_pos(control,input_pos);
+                    break;
+        }
+        case 0x31:{ //input vel
+                    float input_vel;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&input_vel,buf,len);
+
+                    set_control_vel(control,input_vel);
+                    break;
+        }
+        case 0x32:{ //input torque
+                    float input_torque;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&input_torque,buf,len);
+
+                    set_control_torque(control,input_torque);
                     break;
         }
         default:
@@ -153,20 +268,49 @@ void osc_handle(uint8_t* keyword,uint8_t len){
                 #endif
                 break;
             }
+            case 0x08:{ //id_set
+                    ptr[i] = get_motor_id_set(&mt);
+                    break;
+            }
+            case 0x09:{ //iq_set
+                        ptr[i] = get_motor_iq_set(&mt);
+                        break;
+            }
+            case 0x0A:{ //id_feedback
+                        ptr[i] = get_motor_id_feedback(&mt);
+                        break;
+            }
+            case 0x0B:{ //iq_feedback
+                        ptr[i] = get_motor_iq_feedback(&mt);
+                        break;
+            }
+            case 0x0C:{ //ia_feedback
+                        ptr[i] = get_motor_ia_feedback(&mt);
+                        break;
+            }
+            case 0x0D:{ //ib_feedback
+                        ptr[i] = get_motor_ib_feedback(&mt);
+                        break;
+            }
+            case 0x010:{ //mod_d
+                        ptr[i] = get_motor_mod_d(&mt);
+                        break;
+            }
+            case 0x011:{ //mod_b
+                        ptr[i] = get_motor_mod_q(&mt);
+                        break;
+            }
 
-            case 0x10:{
+            //encoder
+            case 0x12:{
                 ptr[i] = get_encoder_phase_ptr(&encoder);
                 break;
             }
-            case 0x11:{
-                ptr[i] = get_encoder_phase_vel_ptr(&encoder);
-                break;
-            }
-            case 0x12:{
+            case 0x13:{
                 ptr[i] = get_encoder_pos_est_ptr(&encoder);
                 break;
             }
-            case 0x13:{
+            case 0x14:{
                 ptr[i] = get_encoder_vel_est_ptr(&encoder);
                 break;
             }
@@ -210,7 +354,7 @@ void Protocol::task(void* ctx){
 void Protocol::init(){
 
     _sem = xSemaphoreCreateBinary();
-    xTaskCreate(this->task,"Prot",configMINIMAL_STACK_SIZE*2,this,2,&(this->_task));
+    xTaskCreate(this->task,"Prot",configMINIMAL_STACK_SIZE*3,this,2,&(this->_task));
 
     _prot_head = prot_head;
     _prot_head_len = sizeof(prot_head)/sizeof(prot_head[0]);

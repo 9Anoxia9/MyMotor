@@ -7,11 +7,12 @@
 #include "task.h"
 #include "interface_usb.hpp"
 
+
 #define LOG_WAIT_TICK       5
 
-#ifdef ENBALE_LOG
-#define LOG(fmt,...)        get_log_instance().log(fmt,##__VA_ARGS__)
-#define LOG_STACK_SIZE      (configMINIMAL_STACK_SIZE*2)
+#ifdef ENABLE_LOG
+#define LOG(fmt,...)                        get_log_instance().log(fmt,##__VA_ARGS__)
+#define LOG_STACK_SIZE                      (configMINIMAL_STACK_SIZE*2)
 #else
 #define LOG(fmt,...)  
 #define LOG_STACK_SIZE      configMINIMAL_STACK_SIZE

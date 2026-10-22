@@ -3,6 +3,7 @@
 
 #include "at32_gpio.hpp"
 #include "at32_spi.hpp"
+#include "utils.hpp"
 
 class Axis;
 
@@ -24,9 +25,11 @@ public:
 
         uint16_t abs_ncs_gpio_pin = 1;
 
-        float pll_bandwidth = 1000;     //rad
+        float pll_bandwidth = 1000.0f;     //rad
         float pll_kp = 2*pll_bandwidth;
         float pll_ki = pll_bandwidth*pll_bandwidth;
+
+        float _err4_phase = 0.0f;
 
         float direction = 1.0f;
     };
@@ -41,11 +44,12 @@ public:
     uint16_t _cnt_in_cpr;               //记录上一时刻的单圈位置
     int32_t  _total_pos_cnt;            //记录实时位置
 
-    float _cpr_pos_est_cnt = 0.0;       //conut 估算单圈编码值
-    float _vel_est_cnt = 0.0;           //count/s 估算的速度值
+    float _cpr_pos_est_cnt = 0.0f;       //conut 估算单圈编码值
+    float _vel_est_cnt = 0.0f;           //count/s 估算的速度值
 
-    float _pos_est = 0.0;               //turn 单圈内走了0.几圈
-    float _vel_est = 0.0;               //turn/s
+    float _pos_est = 0.0f;               //turn
+    float _vel_est = 0.0f;               //turn/s
+    float _vel_simple = 0.0f;
 
     float _pll_kp;                      //
     float _pll_ki;

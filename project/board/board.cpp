@@ -10,11 +10,11 @@
 //多功能IO引脚,要求能灵活切换成各种配置
 Gpio gpios[] = {
     {GPIOC,GPIO_PINS_13},   //LED2
-    {GPIOC,GPIO_PINS_14},   //GPIO1
-    {GPIOC,GPIO_PINS_15},   //GPIO2
-    {GPIOH,GPIO_PINS_0},    //GPIO3
-    {GPIOH,GPIO_PINS_1},    //GPIO4
-    {GPIOA,GPIO_PINS_1},    //GPIO5
+    {GPIOA,GPIO_PINS_1},    //GPIO1
+    {GPIOA,GPIO_PINS_2},    //GPIO2
+    {GPIOA,GPIO_PINS_3},    //GPIO3
+    {GPIOA,GPIO_PINS_4},    //GPIO4
+    {GPIOA,GPIO_PINS_5},    //GPIO5
     {GPIOC,GPIO_PINS_9},    //CLK_IO
     {GPIOD,GPIO_PINS_2},    //M1_ENC_Z
     {GPIOB,GPIO_PINS_3},    //M0_ENC_Z
@@ -81,6 +81,11 @@ void board_init(void){
     board_tim14_init();
     board_usb_init();
     board_spi3_init();
+    board_usart2_init();
+
+    tmr_flag_clear(TMR1,TMR_OVF_FLAG);
+    tmr_interrupt_enable(TMR1,TMR_OVF_INT,TRUE);
+    nvic_irq_enable(TMR1_OVF_TMR10_IRQn, 1, 0);
 
     tmr_flag_clear(TMR8,TMR_OVF_FLAG);
     tmr_interrupt_enable(TMR8,TMR_OVF_INT,TRUE);
@@ -202,7 +207,7 @@ void ADC1_2_IRQHandler(void){
 
     //抢占
     if(adc_interrupt_flag_get(ADC1, ADC_PCCE_FLAG) != RESET){
-        #if 1
+        #if 0
         if(gpios[CLK_IO].read_output()){
             gpios[CLK_IO].write(0);
         }else{
@@ -231,6 +236,19 @@ void ADC1_2_IRQHandler(void){
         adc_flag_clear(ADC2, ADC_TCF_FLAG);
     }
 }
+
+#if 1 
+void TMR1_OVF_TMR10_IRQHandler(void){
+    if(tmr_interrupt_flag_get(TMR1,TMR_OVF_FLAG) != RESET){
+        if(gpios[CLK_IO].read_output()){
+            gpios[CLK_IO].write(0);
+        }else{
+            gpios[CLK_IO].write(1);
+        }
+        tmr_flag_clear(TMR1,TMR_OVF_FLAG);
+    }
+}
+#endif
 
 void TMR8_OVF_TMR13_IRQHandler(void){
     
@@ -281,6 +299,7 @@ void Ctrl_Loop_Handler(){
 
 
     encoder.update();
+    control.update();
     mt.update();
     osc.update();
     
@@ -306,10 +325,6 @@ void Ctrl_Loop_Handler(){
     mt.dc_cali_update(current0);
 
     mt.pwm_update(_timestamp + 3*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
-
-    for(auto& axis:axes){
-        axis.thread_wakeup();
-    }
 }
 
 }

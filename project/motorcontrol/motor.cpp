@@ -14,9 +14,6 @@ void Motor::update_current_control_law_pi_gain(){
 }
 
 void Motor::measure_current(uint32_t timestamp,std::optional<I_phUVW> current){
-
-    uint8_t idd;
-
     bool dc_cail_enable = (_dc_cail_elapsed_time >= _config.dc_cail_tau*1.5f*2*PI);
 
     if(dc_cail_enable && current.has_value()){
@@ -35,7 +32,6 @@ void Motor::measure_current(uint32_t timestamp,std::optional<I_phUVW> current){
 
         if(SQ(_config.max_current) < TWO_BY_3*pha_i){   //超过了最大电流
             //disarm();
-            (void)idd;
         }
     }else{
         if(_is_armed == true){
@@ -113,8 +109,6 @@ void Motor::dc_cali_update(std::optional<I_phUVW> current){
     }
 }
 
-
-
 void Motor::arm(PhaseCtrlLaw* ctrl_law){
 
     CRITICAL_SECTION{
@@ -135,13 +129,17 @@ void Motor::disarm(){
 }
 
 void Motor::update(){
-    float _phase_vel = *_phase_vel_src;
-    float id = *_id_set_src;   
-    float iq = *_iq_set_src;        
+    float phase_vel = *_phase_vel_src;
+    float torque = *_torque_set_src;
 
-    _vd_set = id * _config.R - _phase_vel*_config.L * iq;
-    _vq_set = iq * _config.R + _phase_vel*_config.L * id;
-    _vq_set += TWO_BY_3* _phase_vel * _config.tuque_const / _config.pole_pair;
+    torque *= _config.torque_dir;
+    
+    _iq_set = torque/_config.tuque_const;
+    _id_set = 0.0f;
+
+    _vd_set = _id_set * _config.R - phase_vel*_config.L * _iq_set;
+    _vq_set = _iq_set * _config.R + phase_vel*_config.L * _id_set;
+    _vq_set += TWO_BY_3 * phase_vel * _config.tuque_const / _config.pole_pair;
 }
 
 void Motor::pwm_update(uint32_t output_timestamp){

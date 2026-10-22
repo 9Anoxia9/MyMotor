@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include "my_debug.h"
 #include "interface_usb.hpp"
+#include "interface_usart.hpp"
 
 
 my_log::logger log_instance;
@@ -35,8 +36,9 @@ void my_log::logger::task(void * ctx){
     while(1){
         if(xQueueReceive(instance->_log_que,&item,portMAX_DELAY) == pdPASS){
             if(instance->_backend->connected()){
-                instance->_backend->write(item.buf,item.len);
-                instance->_backend->flush();
+                if(instance->_backend->write(item.buf,item.len)){
+                    instance->_backend->flush();   
+                }
             }
         }
         stack_use_size = uxTaskGetStackHighWaterMark(NULL);
@@ -47,15 +49,37 @@ void my_log::logger::task(void * ctx){
 void my_log::logger::init(Backend * backend,uint8_t que_len){
 
     this->_backend = backend;
+    backend->init();
     this->_log_que =  xQueueCreate(que_len,sizeof(log_item));
     xTaskCreate(this->task,"log",CDC_STACK_SIZE,this,1,\
                     &(this->_log_task));
+    
 }
 
 void log_init(){
+#ifdef ENABLE_USB_LOG
     log_instance.init(&usb_logbackend,10);
+#else
+    log_instance.init(&usart_logbackend,10);
+#endif
 }
 
 my_log::logger& get_log_instance(){
     return log_instance;
+}
+
+// TinyUSB 调试输出包装函数,桥接到本项目的 log 系统(异步队列,最终走 UsartBackend)
+extern "C" int tusb_debug_printf(const char* fmt, ...){
+
+    char buf[128];
+    va_list args;
+    int len;
+
+    va_start(args, fmt);
+    len = vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+
+    get_log_instance().log("%s", buf);
+
+    return len;
 }

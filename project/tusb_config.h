@@ -66,6 +66,7 @@
 // can be defined by compiler in DEBUG build
 #ifndef CFG_TUSB_DEBUG
 #define CFG_TUSB_DEBUG        0
+#define CFG_TUSB_DEBUG_PRINTF tusb_debug_printf
 #endif
 
 // Enable Device stack
@@ -98,7 +99,11 @@
 #endif
 
 //------------- CLASS -------------//
+#ifdef ENABLE_USB_LOG
 #define CFG_TUD_CDC              2
+#else
+#define CFG_TUD_CDC              1
+#endif
 #define CFG_TUD_MSC              0
 #define CFG_TUD_HID              0
 #define CFG_TUD_MIDI             0

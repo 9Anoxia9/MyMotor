@@ -5,9 +5,12 @@
 #include "tusb_config.h"
 #include "common.hpp"
 
-
+#ifdef ENABLE_USB_LOG
 #define CDC_LOG_ITF        0
 #define CDC_BIT_ITF        1
+#else
+#define CDC_BIT_ITF        0
+#endif
 
 
 #define USBD_STACK_SIZE    (configMINIMAL_STACK_SIZE * (CFG_TUSB_DEBUG ? 4 : 2))

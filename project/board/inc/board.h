@@ -9,6 +9,7 @@
 #include "adc.h"
 #include "usb.h"
 #include "spi.h"
+#include "usart.h"
 
 
 #define MAX_VOLTAGE         24.0f
@@ -97,6 +98,7 @@ struct CriticalSection
 
 extern Motor mt;
 extern Encoder encoder;
+extern Control control;
 extern std::array<Axis,AXIS_COUNT> axes;
 
 extern Osc  osc;

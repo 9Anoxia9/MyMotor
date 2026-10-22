@@ -13,16 +13,22 @@ class Motor {
 public:
         struct Config_t{
             uint8_t pole_pair = 7;                 //7对极
-            float R = 0.21413984894752502f;        //0.12R
-            float L = 0.000054197236750042066f;    //50uH
+            float R = 0.21413984894752502f;        //0.12R 0.21413984894752502f
+            float L = 0.000054197236750042066f;    //50uH  0.000054197236750042066f
 
-            float tuque_const = 60.0f/2/PI/360;
+            float tuque_const = 60.0f/2.0f/PI/360.0f*SQRT3_BY_2;
 
-            float bandwidth = 2000;     //rad/s 1002Hz 6300
+            float max_torque = 0.115f;   //Nm
+
+            float J = 0.000014337699f;
+
+            float bandwidth = 6300;               //rad/s 1002Hz 6300
 
             float dc_cail_tau = 1.0f/(2.0f*PI);   //对应1Hz
 
             float max_current = 5.0f;   //A
+
+            float torque_dir = 1.0f;
         };
 
         Motor(tmr_type* tmr):_tmr(tmr){}
@@ -47,7 +53,6 @@ public:
 
         Config_t  _config;
 
-
         //测量校准电流值
         I_phUVW _i_pha;
         I_phUVW _adc_val;
@@ -69,10 +74,11 @@ public:
 
         //外部输入
         float *_phase_vel_src = nullptr;     //电角速度rad/s
-        float *_id_set_src = nullptr;        //由外部输入设置    
-        float *_iq_set_src = nullptr;        //由外部输入设置
+        float *_torque_set_src = nullptr;    //扭矩
 
         //输出
+        float _id_set = 0.0f;
+        float _iq_set = 0.0f;
         float _vd_set = 0.0f;            
         float _vq_set = 0.0f;
 
@@ -114,6 +120,46 @@ static inline float* get_motor_iv_ptr(Motor* mt){
 
 static inline float* get_motor_iw_ptr(Motor* mt){
         float* ptr_r = &(mt->_i_pha.iw);
+        return ptr_r;
+}
+
+static inline float* get_motor_id_set(Motor* mt){
+        float* ptr_r = &(mt->_id_set);
+        return ptr_r;
+}
+
+static inline float* get_motor_iq_set(Motor* mt){
+        float* ptr_r = &(mt->_iq_set);
+        return ptr_r;
+}
+
+static inline float* get_motor_id_feedback(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._id_feedback);
+        return ptr_r;
+}
+
+static inline float* get_motor_iq_feedback(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._iq_feedback);
+        return ptr_r;
+}
+
+static inline float* get_motor_ia_feedback(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._i_alpha);
+        return ptr_r;
+}
+
+static inline float* get_motor_ib_feedback(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._i_beta);
+        return ptr_r;
+}
+
+static inline float* get_motor_mod_q(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._mod_q);
+        return ptr_r;
+}
+
+static inline float* get_motor_mod_d(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._mod_d);
         return ptr_r;
 }
 

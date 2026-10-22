@@ -15,28 +15,38 @@ void Axis::run_open_loop(){
     _mt.arm(&_mt._vf_open_control_law);
 }
 
-void Axis::run_current_loop(){
+void Axis::run_close_loop(){
 
     _mt.update_current_control_law_pi_gain();
 
-    _control._id_set = 0.0f;
-    _control._iq_set = 0.2f;
+    _control._pos_src = &_encoder._pos_est;
+    _control._vel_src = &_encoder._vel_est;
 
-    _mt._current_control_law._id_set_src = &_control._id_set;
-    _mt._current_control_law._iq_set_src = &_control._iq_set;
+    _mt._torque_set_src = &_control._torque_cmd;
+    _mt._phase_vel_src = &_encoder._phase_vel;
+
+    _mt._current_control_law._id_set_src = &_mt._id_set;
+    _mt._current_control_law._iq_set_src = &_mt._iq_set;
     _mt._current_control_law._vd_set_src = &_mt._vd_set;
     _mt._current_control_law._vq_set_src = &_mt._vq_set;
     _mt._current_control_law._phase_src = &_encoder._phase;
     _mt._current_control_law._phase_vel_src = &_encoder._phase_vel;
+    _mt._config.torque_dir = _encoder._config.direction;
 
-    _mt._id_set_src = &_control._id_set;
-    _mt._iq_set_src = &_control._iq_set;
-    _mt._phase_vel_src = &_encoder._phase_vel;
+    _control._pos_input = 0.0f;
+    _control._vel_input = 0.0f;
+    _control._torque_input = 0.0f;
+    _control._vel_integral = 0.0f;
+
+    _control.set_pos(_encoder._pos_est);
 
     _mt.arm(&_mt._current_control_law);
 }
 
 void Axis::run_direction_calibration(){
+    _VF_openloop_controller._phase = 0.0f;
+    _VF_openloop_controller._phase_vel = 0.0f;
+    _VF_openloop_controller._total_turn = 0.0f;
     _VF_openloop_controller._target_vel = 3.0f;
     run_open_loop();
 
@@ -61,11 +71,11 @@ void Axis::run_offset_calibration(){
     _VF_openloop_controller._phase = 0.0f;
     _VF_openloop_controller._phase_vel = 0.0f;
     _VF_openloop_controller._cur_vel = 0.0f;
-    _VF_openloop_controller._vd_set = -0.5f;
+    _VF_openloop_controller._vd_set = 0.5f;
 
     run_open_loop();
 
-    vTaskDelay(3000);
+    vTaskDelay(1000);
 
     uint8_t i = 0;
     uint32_t offset = 0;
@@ -92,11 +102,7 @@ void Axis::run_idle(){
 }
 
 void Axis::thread_wakeup(){
-    BaseType_t xHigherPriorityTaskWoken = 0;
-
-    xSemaphoreGiveFromISR(_sem,&xHigherPriorityTaskWoken);
-
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    xSemaphoreGive(_sem);
 }
 
 void Axis::task(void* ctx){
@@ -140,7 +146,7 @@ void Axis::task(void* ctx){
                     i++;
                     break;
                 case AXIS_STATUS_CLOSE_LOOP:
-                    axis->run_current_loop();
+                    axis->run_close_loop();
                     axis->_status_chain[i] = AXIS_STATUS_UNDEFINE;
                     i++;
                     break;

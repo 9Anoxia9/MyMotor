@@ -150,3 +150,22 @@ void can_gpio_init(void){
     gpio_pin_mux_config(CAN1_IO_PORT, CAN1_RX_SRC, CAN1_MUX);
     gpio_pin_mux_config(CAN1_IO_PORT, CAN1_TX_SRC, CAN1_MUX);
 }
+
+void usart2_gpio_init(void){
+
+    gpio_init_type gpio_init_struct;
+
+    crm_periph_clock_enable(USART2_IO_CLK, TRUE);
+
+    gpio_default_para_init(&gpio_init_struct);
+
+    gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+    gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+    gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
+    gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+    gpio_init_struct.gpio_pins = USART2_TX | USART2_RX;
+    gpio_init(USART2_IO_PORT, &gpio_init_struct);
+
+    gpio_pin_mux_config(USART2_IO_PORT, USART2_TX_SRC, USART2_MUX);
+    gpio_pin_mux_config(USART2_IO_PORT, USART2_RX_SRC, USART2_MUX);
+}

@@ -31,7 +31,7 @@ public:
 
         void run_open_loop();
 
-        void run_current_loop();
+        void run_close_loop();
 
         void run_idle();
 

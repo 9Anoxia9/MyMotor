@@ -14,7 +14,7 @@ public:
         float get_err();
 
 
-        float _kvf = 24.0f*60.0f/8640.0f;                  //kvf = max_voltage*60s/max_vel(turn/min)
+        float _kvf = 24.0f*60.0f/8640.0f*ONE_BY_SQRT3;   //kvf = max_voltage*60s/max_vel(turn/min)
         float _low_vel_compensate_voltage = 0.5f; //V
         float ki = 10.0f; 
         

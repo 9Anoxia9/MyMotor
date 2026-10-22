@@ -109,7 +109,7 @@ void board_tim8_init(){
   tmr_primary_mode_select(TMR8, TMR_PRIMARY_SEL_OVERFLOW);
 
   /* tmr8 output enable */
-  tmr_output_enable(TMR8, TRUE);
+  tmr_output_enable(TMR8, FALSE);
   /* enable tmr8 */
   tmr_counter_enable(TMR8, FALSE);
 }

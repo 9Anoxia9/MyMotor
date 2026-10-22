@@ -1,5 +1,6 @@
-add_library(usb 
+add_library(usb
     interface_usb.cpp
+    interface_usart.cpp
     protocol.cpp
 )
 
