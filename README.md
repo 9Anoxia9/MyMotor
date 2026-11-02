@@ -85,6 +85,14 @@ project/
 └── debug/                # logging
 ```
 
+## Host (PC Software)
+
+The Python host under [`host/`](host/) communicates with the firmware over USB
+CDC (the application protocol in `project/communicate/`, specified in
+[`协议定义.txt`](协议定义.txt)). It supports parameter query/set, real-time
+plotting, and oscilloscope capture. See [`host/README.md`](host/README.md) for
+usage and dependencies.
+
 ## Calibration
 
 The electrical angle must be calibrated before closing the current loop:
