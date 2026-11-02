@@ -1,8 +1,9 @@
 # MyMotor — FOC Motor Control Firmware
 
 A hand-written **Field-Oriented Control (FOC)** motor driver firmware for the
-AT32F435 MCU. Features a dq-frame current loop with SVPWM, absolute-encoder PLL,
-open-loop V/F startup, and automatic direction & electrical-angle calibration.
+AT32F455 MCU. Features a three-loop cascade (position / velocity / torque), a
+dq-frame current loop with SVPWM, absolute-encoder PLL, open-loop V/F startup,
+and automatic direction & electrical-angle calibration.
 
 The architecture and control-loop timing are inspired by
 [ODrive](https://github.com/odriverobotics/ODrive), but the code is written
@@ -10,6 +11,7 @@ from scratch.
 
 ## Features
 
+- **Three-loop cascade** — position / velocity / torque control modes
 - **FOC current loop** — dq-frame PI controller with decoupling and back-EMF feedforward
 - **SVPWM** — space-vector modulation with linear-region clamping and anti-windup
 - **Absolute-encoder PLL** — AS5047P (14-bit) position & velocity estimation
@@ -26,12 +28,12 @@ from scratch.
 
 | Item | Spec |
 |---|---|
-| MCU | AT32F435 (192 MHz) |
+| MCU | AT32F455 (192 MHz) |
 | Motor | 7 pole-pair PMSM/BLDC, R = 0.214 Ω, L = 54.2 µH |
 | Position sensor | AS5047P 14-bit absolute magnetic encoder (SPI) |
 | Bus voltage | 24 V |
 | PWM | Center-aligned, 24 kHz |
-| Current loop | 16 kHz (62.5 µs) |
+| Current loop | 8 kHz (125 µs) |
 
 ## Architecture
 
@@ -49,7 +51,7 @@ PhaseCtrlLaw  (interface: FOC, VFControl)
      Axis      — state machine: IDLE / DIR_CAL / OFFSET_CAL / OPEN_LOOP / CLOSE_LOOP
       │
    Encoder     — AS5047P SPI sampling + position/velocity PLL
-   Control     — current setpoints (id/iq)
+   Control     — position/velocity/torque cascade
 ```
 
 - **`FOC`** — the closed-loop current control law (Clarke → Park → PI + feedforward → inverse-Park → SVPWM).
@@ -75,7 +77,7 @@ project/
 │   ├── openloop.cpp/hpp  # open-loop V/F controller
 │   ├── utils.cpp/hpp     # SVPWM, wrapping helpers
 │   └── oscilloscope.cpp/hpp
-├── usb_com/              # USB CDC backend + application protocol
+├── communicate/          # USB CDC + USART backends, application protocol
 └── debug/                # logging
 ```
 
@@ -91,6 +93,27 @@ The electrical angle must be calibrated before closing the current loop:
 
 After calibration, `iq` produces forward torque and the current loop tracks
 `id`/`iq` setpoints.
+
+## Current Status & Known Issues
+
+The three-loop cascade (position → velocity → torque) runs closed-loop. Known
+issues are tracked in [`debug_log.md`](debug_log.md); the main ones:
+
+- **Encoder timing is synchronized by a deterministic SPI busy-flag wait.** The
+  AS5047P SPI sample finishes ~6 µs after the control-loop ISR starts; under
+  optimization, `Encoder::update()` could run first and read a two-cycle-old
+  sample (250 µs lag instead of 125 µs). `Encoder::update()` now waits for the SPI
+  busy flag to clear before reading — a hardware-event wait (not a magic-number
+  delay), so it is deterministic across `-O0` / `-O1` / `-O2`.
+- **Residual USB-communication jitter** — after fixing the encoder lag, a second,
+  independent jitter source remains: USB CDC traffic. Slight at `-O1` (audible
+  noise only), obvious at `-O2`. Mechanism not yet pinned (AHB bus contention vs.
+  analog coupling into the ADC) — see `debug_log.md`.
+- **Current-loop steady-state oscillation at high speed** (`iq` ∝ 1/speed) — still
+  under investigation (suspects: back-EMF λ inaccuracy, phase margin, residual
+  angle lag).
+- **Planned** — split the control-loop ISR into valley-compute / peak-write to
+  remove the hard-wait and raise the control rate (RPR 2 → 1 → 0).
 
 ## Acknowledgements
 

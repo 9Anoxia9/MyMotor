@@ -49,7 +49,7 @@ public:
 
     float _pos_est = 0.0f;               //turn
     float _vel_est = 0.0f;               //turn/s
-    float _vel_simple = 0.0f;
+    float _vel_ins = 0.0f;           //turn/s
 
     float _pll_kp;                      //
     float _pll_ki;
@@ -112,6 +112,11 @@ static inline float* get_encoder_pos_est_ptr(Encoder* enc){
 
 static inline float* get_encoder_vel_est_ptr(Encoder* enc){
         float* ptr_r = &(enc->_vel_est);
+        return ptr_r;
+}
+
+static inline float* get_encoder_vel_ins_ptr(Encoder* enc){
+        float* ptr_r = &(enc->_vel_ins);
         return ptr_r;
 }
 

@@ -109,6 +109,8 @@ bool Gpio::set_exint(exint_polarity_config_type polarity,
     }else if(port_ == GPIOH){
         crm_periph_clock_enable(CRM_GPIOH_PERIPH_CLOCK, TRUE);
         port_src = SCFG_PORT_SOURCE_GPIOH;
+    }else{
+        ASSERT(false);
     }
 
     scfg_exint_line_config(port_src, get_pin_source());

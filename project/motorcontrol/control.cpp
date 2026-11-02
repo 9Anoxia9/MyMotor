@@ -32,7 +32,7 @@ void Control::update(){
 
             _vel_ramp_cmd += step;
             _torque_cmd = step/CTRL_DT * _axis->_mt._config.J;
-            vel_err = _vel_ramp_cmd - (*_vel_src) * 2 * PI;
+            vel_err = _vel_ramp_cmd - (*_vel_src) * 2.0f * PI;
         /*}else{
             vel_err = _vel_cmd - (*_vel_src) * 2 * PI;
         }*/
@@ -40,7 +40,7 @@ void Control::update(){
         _torque_cmd += _vel_kp * vel_err + _vel_integral;
 
         if(std::abs(_torque_cmd) >= _axis->_mt._config.max_torque){
-            _vel_integral *= 0.99;
+            _vel_integral *= 0.99f;
         }else{
             _vel_integral += vel_err * _vel_ki * CTRL_DT;
         }

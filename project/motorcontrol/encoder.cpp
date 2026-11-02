@@ -76,6 +76,9 @@ void Encoder::update(){
     int32_t delta_pos = 0;
     int32_t sample_cnt_in_cpr = _sample_cnt_in_cpr;
 
+    while(spi_i2s_flag_get(*_spi, SPI_I2S_BF_FLAG) != RESET);
+    gpios[CLK_IO].write(0);
+
     if(_mode == MODE_ABS_AS5047P){
         if(_abs_spi_update == false){
             return;
@@ -118,12 +121,11 @@ void Encoder::update(){
 
     _pos_est = (float)_total_pos_cnt/_config.cpr;       //turn
     _vel_est = _vel_est_cnt/_config.cpr;                //turn/s
-    //_vel_est = (float)delta_pos/(float)_config.cpr/CTRL_DT;
 
     int32_t correct_cnt_in_cpr = (int32_t)_cnt_in_cpr - (int32_t)_config.phase_offset_cpr;
-    float elec_rad_per_enc = 2*PI*7/_config.cpr;
+    float elec_rad_per_enc = 2.0f*PI*7.0f/_config.cpr;
     float ph = correct_cnt_in_cpr*elec_rad_per_enc;
 
     _phase = wrap_pi(ph)*_config.direction;
-    _phase_vel = _vel_est*2*PI*7*_config.direction;
+    _phase_vel = _vel_est*2.0f*PI*7.0f*_config.direction;
 }

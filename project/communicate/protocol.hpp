@@ -6,7 +6,7 @@
 
 
 #define PROTOCOL_BUF_SIZE       256//OSC_DATA_SIZE_MAX
-#define OSC_DATA_SIZE_MAX       4096
+#define OSC_DATA_SIZE_MAX       12544
 
 
 #define FRAME_LEN_SIZE      1

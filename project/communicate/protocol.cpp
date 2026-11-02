@@ -114,6 +114,24 @@ uint8_t query_handle(uint8_t* buf,uint8_t keyword){
                     len = sizeof(float) + 1;
                     break;
         }
+        case 0x0E:{ //integral_d
+                    float* rd_ptr;
+                    rd_ptr = get_motor_integral_d(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
+        case 0x0F:{ //integral_q
+                    float* rd_ptr;
+                    rd_ptr = get_motor_integral_q(&mt);
+
+                    *buf = FLOAT;
+                    memcpy(buf + 1,rd_ptr,sizeof(float));
+                    len = sizeof(float) + 1;
+                    break;
+        }
 
 
         case 0x010:{ //mod_d
@@ -186,7 +204,9 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
             axes[0].thread_wakeup();
             break;
         }
-        case 0x20:{
+
+        
+        case 0x20:{ //VF vel
                     float turn_vel;
 
                     if(type != FLOAT) return 0xFF;
@@ -194,7 +214,62 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
 
                     memcpy(&turn_vel,buf,len);
 
-                    set_openloop_target_vel(&axes[0],turn_vel);
+                    set_vfopenloop_vel_input(&axes[0],turn_vel);
+                    break;
+        }
+        case 0x21:{ //VF vel ramp
+                    float vel_ramp;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&vel_ramp,buf,len);
+
+                    set_vfopenloop_vel_input(&axes[0],vel_ramp);
+                    break;
+        }
+        case 0x22:{ //IF vel
+                    float turn_vel;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&turn_vel,buf,len);
+
+                    set_ifopenloop_vel_input(&axes[0],turn_vel);
+                    break;
+        }
+        case 0x23:{ //IF vel ramp
+                    float vel_ramp;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&vel_ramp,buf,len);
+
+                    set_ifopenloop_vel_input(&axes[0],vel_ramp);
+                    break;
+        }
+        case 0x24:{ //IF current
+                    float current;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&current,buf,len);
+
+                    set_ifopenloop_current_input(&axes[0],current);
+                    break;
+        }
+        case 0x25:{ //IF current ramp
+                    float current_ramp;
+
+                    if(type != FLOAT) return 0xFF;
+                    len = sizeof(float);
+
+                    memcpy(&current_ramp,buf,len);
+
+                    set_ifopenloop_current_ramp(&axes[0],current_ramp);
                     break;
         }
 
@@ -292,6 +367,14 @@ void osc_handle(uint8_t* keyword,uint8_t len){
                         ptr[i] = get_motor_ib_feedback(&mt);
                         break;
             }
+            case 0x0E:{ //integral_d
+                        ptr[i] = get_motor_integral_d(&mt);
+                        break;
+            }
+            case 0x0F:{ //integral_q
+                        ptr[i] = get_motor_integral_q(&mt);
+                        break;
+            }
             case 0x010:{ //mod_d
                         ptr[i] = get_motor_mod_d(&mt);
                         break;
@@ -312,6 +395,10 @@ void osc_handle(uint8_t* keyword,uint8_t len){
             }
             case 0x14:{
                 ptr[i] = get_encoder_vel_est_ptr(&encoder);
+                break;
+            }
+            case 0x15:{
+                ptr[i] = get_encoder_vel_ins_ptr(&encoder);
                 break;
             }
             default:
@@ -343,6 +430,7 @@ void Protocol::task(void* ctx){
                 instance->_analyse.tx_rd += instance->_backend->write(wr_ptr,size);
                 
                 instance->_backend->flush();
+                //vTaskDelay(1);
             }
             instance->_analyse.tx_rd = 0;
             instance->_analyse.tx_wr = 0;
@@ -565,11 +653,12 @@ void Protocol::analyse_frame(){
                 _analyse.tx_wr++;
                 memcpy(_txbuf,_analyse.txframe,_analyse.tx_wr);
                 data_len_idx = _analyse.tx_wr;
-                _analyse.tx_wr += 2;    //跳过2个字节的数据长度
                 
                 while(osc.done() == false){
                     vTaskDelay(1);  //1ms等待
                 }
+
+                _analyse.tx_wr += 2;    //跳过2个字节的数据长度
                 _analyse.tx_wr += osc.read(_txbuf+_analyse.tx_wr);
                 data_len = _analyse.tx_wr - data_len_idx - 2;
                 memcpy(_txbuf+data_len_idx,&data_len,2);

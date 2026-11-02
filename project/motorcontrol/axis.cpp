@@ -6,13 +6,39 @@ void Axis::init(){
     xTaskCreate(task,"axis",LOG_STACK_SIZE,this,configMAX_PRIORITIES - 2,&_task);
 }
 
-void Axis::run_open_loop(){
+void Axis::run_VF_openloop(){
     _mt._vf_open_control_law._vd_set_src = &_VF_openloop_controller._vd_set;
     _mt._vf_open_control_law._vq_set_src = &_VF_openloop_controller._vq_set;
     _mt._vf_open_control_law._phase_src = &_VF_openloop_controller._phase;
     _mt._vf_open_control_law._phase_vel_src = &_VF_openloop_controller._phase_vel;
 
     _mt.arm(&_mt._vf_open_control_law);
+}
+
+void Axis::run_IF_openloop(){
+    _mt._current_control_law._vd_set_src = &_mt._vd_set;
+    _mt._current_control_law._vq_set_src = &_mt._vq_set;
+    _mt._current_control_law._id_set_src = &_IF_openloop_controller._id_set;
+    _mt._current_control_law._iq_set_src = &_IF_openloop_controller._iq_set;
+    _mt._current_control_law._phase_src = &_IF_openloop_controller._phase;
+    _mt._current_control_law._phase_vel_src = &_IF_openloop_controller._phase_vel;
+
+    _mt._id_src = &_IF_openloop_controller._id_set;
+    _mt._phase_vel_src = &_IF_openloop_controller._phase_vel;
+
+    _mt._current_control_law._vd_set_src = &_mt._vd_set;
+    _mt._current_control_law._vq_set_src = &_mt._vq_set;
+
+    _IF_openloop_controller._current_input = 0.0f;
+    _IF_openloop_controller._vel_input = 0.0f;
+    _IF_openloop_controller._id_set = 0.0f;
+    _IF_openloop_controller._iq_set = 0.0f;
+    _IF_openloop_controller._phase_vel = 0.0f;
+    _IF_openloop_controller._phase = 0.0f;
+
+    _mt.update_current_control_law_pi_gain();
+
+    _mt.arm(&_mt._current_control_law);
 }
 
 void Axis::run_close_loop(){
@@ -22,7 +48,7 @@ void Axis::run_close_loop(){
     _control._pos_src = &_encoder._pos_est;
     _control._vel_src = &_encoder._vel_est;
 
-    _mt._torque_set_src = &_control._torque_cmd;
+    _mt._torque_src = &_control._torque_cmd;
     _mt._phase_vel_src = &_encoder._phase_vel;
 
     _mt._current_control_law._id_set_src = &_mt._id_set;
@@ -39,6 +65,7 @@ void Axis::run_close_loop(){
     _control._vel_integral = 0.0f;
 
     _control.set_pos(_encoder._pos_est);
+    //_control.set_torque(0);
 
     _mt.arm(&_mt._current_control_law);
 }
@@ -47,8 +74,8 @@ void Axis::run_direction_calibration(){
     _VF_openloop_controller._phase = 0.0f;
     _VF_openloop_controller._phase_vel = 0.0f;
     _VF_openloop_controller._total_turn = 0.0f;
-    _VF_openloop_controller._target_vel = 3.0f;
-    run_open_loop();
+    _VF_openloop_controller._vel_input = 3.0f;
+    run_VF_openloop();
 
     while(1){
         if( _VF_openloop_controller._total_turn >= 3){
@@ -61,19 +88,19 @@ void Axis::run_direction_calibration(){
         }
         vTaskDelay(1);
     }
-    _VF_openloop_controller._target_vel = 0.0f;
+    _VF_openloop_controller._vel_input = 0.0f;
     _mt.disarm();
 }
 
 void Axis::run_offset_calibration(){
 
-    _VF_openloop_controller._target_vel = 0.0f;
+    _VF_openloop_controller._vel_input = 0.0f;
     _VF_openloop_controller._phase = 0.0f;
     _VF_openloop_controller._phase_vel = 0.0f;
     _VF_openloop_controller._cur_vel = 0.0f;
     _VF_openloop_controller._vd_set = 0.5f;
 
-    run_open_loop();
+    run_VF_openloop();
 
     vTaskDelay(1000);
 
@@ -140,13 +167,18 @@ void Axis::task(void* ctx){
                     axis->_status_chain[i] = AXIS_STATUS_UNDEFINE;
                     i++;
                     break;
-                case AXIS_STATUS_OPEN_LOOP:
-                    axis->run_open_loop();
+                case AXIS_STATUS_VF_OPEN_LOOP:
+                    axis->run_VF_openloop();
                     axis->_status_chain[i] = AXIS_STATUS_UNDEFINE;
                     i++;
                     break;
                 case AXIS_STATUS_CLOSE_LOOP:
                     axis->run_close_loop();
+                    axis->_status_chain[i] = AXIS_STATUS_UNDEFINE;
+                    i++;
+                    break;
+                case AXIS_STATUS_IF_OPEN_LOOP:
+                    axis->run_IF_openloop();
                     axis->_status_chain[i] = AXIS_STATUS_UNDEFINE;
                     i++;
                     break;

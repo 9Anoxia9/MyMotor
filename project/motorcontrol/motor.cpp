@@ -2,6 +2,7 @@
 #include "foc.hpp"
 #include "board.h"
 #include "utils.hpp"
+#include <algorithm>
 
 
 void Motor::init(){
@@ -130,28 +131,64 @@ void Motor::disarm(){
 
 void Motor::update(){
     float phase_vel = *_phase_vel_src;
-    float torque = *_torque_set_src;
+    float torque;
 
-    torque *= _config.torque_dir;
+    if(_torque_src != nullptr){     //扭矩控制
+        torque = *_torque_src;
+        torque *= _config.torque_dir;
+        _iq_set = torque/_config.tuque_const;
+        _id_set = 0.0f;
+    }else if(_id_src != nullptr){   //IF
+        _id_set = *_id_src;
+        _iq_set = 0.0f;
+    }
     
-    _iq_set = torque/_config.tuque_const;
-    _id_set = 0.0f;
-
-    _vd_set = _id_set * _config.R - phase_vel*_config.L * _iq_set;
-    _vq_set = _iq_set * _config.R + phase_vel*_config.L * _id_set;
-    _vq_set += TWO_BY_3 * phase_vel * _config.tuque_const / _config.pole_pair;
+    if(_ctrl_law == &_current_control_law){
+        _vd_set = _id_set * _config.R - phase_vel*_config.L * _iq_set;
+        _vq_set = _iq_set * _config.R + phase_vel*_config.L * _id_set;
+        _vq_set += TWO_BY_3 * phase_vel * _config.tuque_const / _config.pole_pair;
+    }
 }
 
 void Motor::pwm_update(uint32_t output_timestamp){
-
+    float deadtime_comp = 0.0f;
     I_alpha_beta mod_alpha_beta = {0,0};
 
     if(_ctrl_law != nullptr){
         _ctrl_law->get_out(output_timestamp,&mod_alpha_beta);
+        deadtime_comp = 0.0125f;
     }
 
     //然后调用SVPWM,输入mod_a、mod_b
     auto [tU,tV,tW,success] = SVPWM(mod_alpha_beta.mod_a,mod_alpha_beta.mod_b);
+
+   /*if(!(tU == 0.5f && tV == 0.5f && tW == 0.5f)){
+        static uint8_t comp_u_on = false,comp_v_on = false,comp_w_on = false;
+        
+
+        if(!comp_u_on && _measure_i->iu > 0.05f)  comp_u_on = true;   // 开启阈值：0.05A
+        if( comp_u_on && _measure_i->iu < 0.02f)  comp_u_on = false;
+
+        if(!comp_v_on && _measure_i->iv > 0.05f)  comp_v_on = true;   // 开启阈值：0.05A
+        if( comp_v_on && _measure_i->iv < 0.02f)  comp_v_on = false;
+
+        if(!comp_w_on && _measure_i->iw > 0.05f)  comp_w_on = true;   // 开启阈值：0.05A
+        if( comp_w_on && _measure_i->iw < 0.02f)  comp_w_on = false;
+
+        if(comp_u_on){
+            float tu_comp = deadtime_comp * std::clamp(_measure_i->iu / 0.05f, -1.0f, 1.0f);
+            tU -= tu_comp;
+        }
+        if(comp_v_on){
+            float tv_comp = deadtime_comp * std::clamp(_measure_i->iv / 0.05f, -1.0f, 1.0f);
+            tV -= tv_comp;
+        }
+        if(comp_w_on){
+            float tw_comp = deadtime_comp * std::clamp(_measure_i->iw / 0.05f, -1.0f, 1.0f);;
+            tW -= tw_comp;
+        }
+    }*/
+    
     
     if(!success){
         return;

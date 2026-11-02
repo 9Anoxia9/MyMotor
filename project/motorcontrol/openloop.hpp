@@ -12,16 +12,18 @@ class OpenloopVF{
 public:
         void update();
         float get_err();
+        void set_vel_input(float vel);
+        void set_vel_ramp(float ramp);
 
 
-        float _kvf = 24.0f*60.0f/8640.0f*ONE_BY_SQRT3;   //kvf = max_voltage*60s/max_vel(turn/min)
+        float _kvf = 24.0f*60.0f/8640.0f/2.0f/PI*ONE_BY_SQRT3;   //kvf = max_voltage*60s/max_vel(turn/min)
         float _low_vel_compensate_voltage = 0.5f; //V
-        float ki = 10.0f; 
+        float _vel_ramp = 10.0f; 
         
-        float _cur_vel = 0.0f;          //turn/s,当前转速
+        float _cur_vel = 0.0f;          //rad/s,当前转速
 
         //输入
-        float _target_vel = 0.0f;       //turn/s,目标转速,外部输入设置
+        float _vel_input = 0.0f;       //rad/s,目标转速,外部输入设置
 
         //输出
         float _vd_set = 0.0f;
@@ -33,6 +35,33 @@ public:
 
         Axis* _axis = nullptr;
         
+};
+
+class OpenloopIF{
+public:
+        OpenloopIF(){}
+
+        void update();
+        void set_current_input(float current);
+        void set_vel_input(float vel);
+        void set_current_ramp(float ramp);
+        void set_vel_ramp(float ramp);
+
+        //指令输入
+        float _current_input = 0.0f;    //A
+        float _vel_input = 0.0f;        //rad/s
+
+        //斜坡值
+        float _current_ramp = 12.5f;
+        float _vel_ramp = 2.0f*PI;
+
+        //指令输出
+        float _id_set = 0.0f;
+        float _iq_set = 0.0f;
+        float _phase = 0.0f;            //rad
+        float _phase_vel = 0.0f;        //rad/s
+
+        Axis* _axis = nullptr;
 };
 
 #endif

@@ -83,9 +83,11 @@ void board_init(void){
     board_spi3_init();
     board_usart2_init();
 
+#if 0 
     tmr_flag_clear(TMR1,TMR_OVF_FLAG);
     tmr_interrupt_enable(TMR1,TMR_OVF_INT,TRUE);
     nvic_irq_enable(TMR1_OVF_TMR10_IRQn, 1, 0);
+#endif
 
     tmr_flag_clear(TMR8,TMR_OVF_FLAG);
     tmr_interrupt_enable(TMR8,TMR_OVF_INT,TRUE);
@@ -94,7 +96,7 @@ void board_init(void){
     nvic_irq_enable(SPI3_I2S3EXT_IRQn, 0, 0);
 
 
-    nvic_irq_enable(Ctrl_Loop_IRQ,5,0);
+    nvic_irq_enable(Ctrl_Loop_IRQ,4,0);
     nvic_irq_enable(OTG_IRQ,6, 0);              //优先级必须比控制环中断低
     //nvic_irq_enable(OTG_WKUP_IRQ, 6, 0);      //优先级必须比控制环中断低
 }
@@ -237,7 +239,7 @@ void ADC1_2_IRQHandler(void){
     }
 }
 
-#if 1 
+#if 0 
 void TMR1_OVF_TMR10_IRQHandler(void){
     if(tmr_interrupt_flag_get(TMR1,TMR_OVF_FLAG) != RESET){
         if(gpios[CLK_IO].read_output()){
@@ -292,20 +294,27 @@ void Ctrl_Loop_Handler(){
         
     std::optional<I_phUVW> current0,current1;
 
+    gpios[CLK_IO].write(1);
     if(fetch_phase_current(&current0,&current1) == false){
         mt.disarm();
     }
-    mt.measure_current(_timestamp - TIM1_CNT_START,current0);
+    mt.measure_current(_timestamp - TIM1_CNT_START,current0);   
 
+    //gpios[CLK_IO].write(0);
 
     encoder.update();
     control.update();
-    mt.update();
-    osc.update();
-    
-    for(auto& axis:axes){
+
+     for(auto& axis:axes){
         axis._VF_openloop_controller.update();
     }
+
+    for(auto& axis:axes){
+        axis._IF_openloop_controller.update();
+    }
+
+    mt.update();
+    osc.update();
     
     for(auto& axis:axes){
         axis._mt._vf_open_control_law.update(_timestamp);
@@ -314,9 +323,11 @@ void Ctrl_Loop_Handler(){
     for(auto& axis:axes){
         axis._mt._current_control_law.update(_timestamp);
     }
-
+    
+    //gpios[CLK_IO].write(1);
     //硬等
     while(adc_flag_get(ADC2, ADC_OCCE_FLAG) == RESET);
+    //gpios[CLK_IO].write(0);
     
     if(fetch_phase_current(&current0,&current1) == false){
         mt.disarm();
@@ -324,7 +335,8 @@ void Ctrl_Loop_Handler(){
     
     mt.dc_cali_update(current0);
 
-    mt.pwm_update(_timestamp + 3*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
+    mt.pwm_update(_timestamp + 5*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
+    //gpios[CLK_IO].write(0);
 }
 
 }

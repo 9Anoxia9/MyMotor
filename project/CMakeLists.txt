@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.31)
 
 #设置工具链
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/gcc.cmake)
-set(CMAKE_BUILD_TYPE Debug)
+
+#RelWithDebInfo
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(main C ASM CXX)

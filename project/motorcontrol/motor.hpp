@@ -22,11 +22,11 @@ public:
 
             float J = 0.000014337699f;
 
-            float bandwidth = 6300;               //rad/s 1002Hz 6300
+            float bandwidth = 1000;               //rad/s 1002Hz 6300
 
             float dc_cail_tau = 1.0f/(2.0f*PI);   //对应1Hz
 
-            float max_current = 5.0f;   //A
+            float max_current = 4.0f;   //A
 
             float torque_dir = 1.0f;
         };
@@ -58,7 +58,6 @@ public:
         I_phUVW _adc_val;
         std::optional<I_phUVW> _measure_i;
         
-
         //直流偏置基准值
         I_phUVW _dc_cail_i = {0.0f};
         float _dc_cail_elapsed_time = 0.0f;
@@ -74,7 +73,9 @@ public:
 
         //外部输入
         float *_phase_vel_src = nullptr;     //电角速度rad/s
-        float *_torque_set_src = nullptr;    //扭矩
+        float *_torque_src = nullptr;    //扭矩
+        float *_id_src = nullptr;
+        float *_iq_src = nullptr;
 
         //输出
         float _id_set = 0.0f;
@@ -150,6 +151,16 @@ static inline float* get_motor_ia_feedback(Motor* mt){
 
 static inline float* get_motor_ib_feedback(Motor* mt){
         float* ptr_r = &(mt->_current_control_law._i_beta);
+        return ptr_r;
+}
+
+static inline float* get_motor_integral_d(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._integral_d);
+        return ptr_r;
+}
+
+static inline float* get_motor_integral_q(Motor* mt){
+        float* ptr_r = &(mt->_current_control_law._integral_q);
         return ptr_r;
 }
 

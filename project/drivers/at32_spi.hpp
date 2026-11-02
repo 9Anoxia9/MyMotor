@@ -22,6 +22,8 @@ public:
 
     Spi(spi_type* hspi): _hspi(hspi){}
 
+    spi_type* operator*() {return this->_hspi;}
+
 
     bool check_task_is_vaild(SpiTask* task) {
         return task->used == false;

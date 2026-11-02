@@ -39,6 +39,8 @@ public:
     float _ki;           //带宽*电阻
     float _integral_d;   //总积分
     float _integral_q;   //总积分
+    float _id_err;       //记录误差
+    float _iq_err;       //记录误差
 
     //外部输入
     float* _vd_set_src;     //目标电压，也是稳态时的电压
@@ -69,7 +71,7 @@ public:
 
         void update(uint32_t ctrl_timestamp) final;
 
-        void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph){}
+        void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph);
 
         void get_out(uint32_t output_timestamp,I_alpha_beta* alpha_beta);
 
@@ -77,6 +79,11 @@ public:
         float*  _vd_set_src;
         float*  _phase_src;
         float*  _phase_vel_src;
+
+        float _i_alpha;
+        float _i_beta;
+        float _id_feedback;
+        float _iq_feedback;
 
         uint32_t _i_timestamp;
         uint32_t _ctrl_timestamp;

@@ -51,6 +51,7 @@ static inline int32_t multple_roundf(float x,float y){
     return (int32_t)lroundf(x/y);
 }
 
+//归一化到[-pi,pi]
 static inline float wrap_pi(float x){
 
     x = x - multple_roundf(x,2*PI)*2*PI;
