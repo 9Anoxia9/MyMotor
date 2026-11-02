@@ -8,3 +8,7 @@ project/build/
 
 # 崩溃转储
 bash.exe.stackdump
+
+# Artery 数据手册/参考手册（二进制，不随源码入库，官网可下载）
+DS_*.pdf
+RM_*.pdf

@@ -35,6 +35,10 @@ from scratch.
 | PWM | Center-aligned, 24 kHz |
 | Current loop | 8 kHz (125 µs) |
 
+> Datasheet (DS) & Reference Manual (RM) for the AT32F455/456/457 are not included
+> in this repo — download them from Artery's official site:
+> [arterytek.com](https://www.arterytek.com).
+
 ## Architecture
 
 The firmware is layered, with a clean separation between the control law,
