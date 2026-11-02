@@ -5,6 +5,8 @@ project/build/
 *.elf
 *.hex
 *.map
+*.lnk
+
 
 # 崩溃转储
 bash.exe.stackdump
