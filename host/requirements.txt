@@ -1,0 +1,5 @@
+pyserial
+prompt_toolkit
+pyqtgraph
+PyQt5
+python-docx
