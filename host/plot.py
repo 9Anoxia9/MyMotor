@@ -25,7 +25,7 @@ _app = None
 PLOT_WINDOW = 5.0
 
 # 示波器模式滚动窗口总时长（秒）：跨帧累计，超过该时长的历史波形被丢弃
-OSC_WINDOW = 0.132
+OSC_WINDOW = 0.032
 
 # 示波器 XY 模式滚动保留的最大点数（无时间轴，按点数限长）
 OSC_XY_MAX_POINTS = 4096

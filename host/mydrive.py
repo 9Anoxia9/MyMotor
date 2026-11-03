@@ -75,17 +75,17 @@ class VFOpenloop:
     def __init__(self,axis_id):
         self.kw_base = axis_id << 7 #轴0->0x00，轴1->0x80
 
-    _vel_input = RemoteProperty(0x20,p.TYPE_FLOAT)
-    _vel_ramp = RemoteProperty(0x21,p.TYPE_FLOAT)
+    input_vel = RemoteProperty(0x20,p.TYPE_FLOAT)
+    vel_ramp = RemoteProperty(0x21,p.TYPE_FLOAT)
 
 class IFOpenloop:
 
     def __init__(self,axis_id):
         self.kw_base = axis_id << 7 #轴0->0x00，轴1->0x80
 
-    vel_input = RemoteProperty(0x22,p.TYPE_FLOAT)
+    input_vel = RemoteProperty(0x22,p.TYPE_FLOAT)
     vel_ramp = RemoteProperty(0x23,p.TYPE_FLOAT)
-    current_input = RemoteProperty(0x24,p.TYPE_FLOAT)
+    input_current = RemoteProperty(0x24,p.TYPE_FLOAT)
     current_ramp = RemoteProperty(0x25,p.TYPE_FLOAT)
 
 
