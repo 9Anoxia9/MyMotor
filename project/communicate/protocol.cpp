@@ -225,7 +225,7 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
 
                     memcpy(&vel_ramp,buf,len);
 
-                    set_vfopenloop_vel_input(&axes[0],vel_ramp);
+                    set_vfopenloop_vel_ramp(&axes[0],vel_ramp);
                     break;
         }
         case 0x22:{ //IF vel
@@ -247,7 +247,7 @@ uint8_t set_handle(uint8_t* buf,uint8_t keyword,uint8_t type){
 
                     memcpy(&vel_ramp,buf,len);
 
-                    set_ifopenloop_vel_input(&axes[0],vel_ramp);
+                    set_ifopenloop_vel_ramp(&axes[0],vel_ramp);
                     break;
         }
         case 0x24:{ //IF current
@@ -430,7 +430,7 @@ void Protocol::task(void* ctx){
                 instance->_analyse.tx_rd += instance->_backend->write(wr_ptr,size);
                 
                 instance->_backend->flush();
-                //vTaskDelay(1);
+                vTaskDelay(1);
             }
             instance->_analyse.tx_rd = 0;
             instance->_analyse.tx_wr = 0;
@@ -646,7 +646,10 @@ void Protocol::analyse_frame(){
                 for(uint8_t i = 0; i < _analyse.payload_len;i++){
                     _analyse.txframe[_analyse.tx_wr++] = _analyse.rxframe[PAYLOAD_START_IDX + 1 + i];
                 }
-                osc_handle(&_analyse.rxframe[PAYLOAD_START_IDX + 1],_analyse.payload_len);    
+
+                if(_analyse.payload_len != 0){
+                    osc_handle(&_analyse.rxframe[PAYLOAD_START_IDX + 1],_analyse.payload_len);
+                }
 
                 _analyse.txframe[LEN_IDX] =  _analyse.tx_wr - PAYLOAD_START_IDX;
                 _analyse.txframe[_analyse.tx_wr] = _crc_fun(_analyse.txframe,_analyse.tx_wr);
@@ -654,7 +657,7 @@ void Protocol::analyse_frame(){
                 memcpy(_txbuf,_analyse.txframe,_analyse.tx_wr);
                 data_len_idx = _analyse.tx_wr;
                 
-                while(osc.done() == false){
+                while(osc.done() == false && _analyse.payload_len != 0){
                     vTaskDelay(1);  //1ms等待
                 }
 

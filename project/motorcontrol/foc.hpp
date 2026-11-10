@@ -19,6 +19,11 @@ public:
     virtual void measure_alpha_beta(uint32_t i_timestamp,I_phUVW i_ph) = 0;
 
     virtual void get_out(uint32_t output_timestamp,I_alpha_beta* alpha_beta) = 0;
+
+    float _i_alpha;
+    float _i_beta;
+    float _id_feedback = 0.0f;
+    float _iq_feedback = 0.0f;
 };
 
 class FOC : public PhaseCtrlLaw{
@@ -51,10 +56,6 @@ public:
     float* _phase_src;      //当前角度
 
     //采样转换,记录值,用于上位机读取
-    float _i_alpha;
-    float _i_beta;
-    float _id_feedback = 0.0f;
-    float _iq_feedback = 0.0f;
     float _mod_d = 0.0f;
     float _mod_q = 0.0f;
 
@@ -79,11 +80,6 @@ public:
         float*  _vd_set_src;
         float*  _phase_src;
         float*  _phase_vel_src;
-
-        float _i_alpha;
-        float _i_beta;
-        float _id_feedback;
-        float _iq_feedback;
 
         uint32_t _i_timestamp;
         uint32_t _ctrl_timestamp;

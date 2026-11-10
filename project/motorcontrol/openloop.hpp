@@ -17,7 +17,7 @@ public:
 
 
         float _kvf = 24.0f*60.0f/8640.0f/2.0f/PI*ONE_BY_SQRT3;   //kvf = max_voltage*60s/max_vel(turn/min)
-        float _low_vel_compensate_voltage = 0.5f; //V
+        float _low_vel_compensate_voltage = 0.33f; //V
         float _vel_ramp = 10.0f; 
         
         float _cur_vel = 0.0f;          //rad/s,当前转速
@@ -47,18 +47,22 @@ public:
         void set_current_ramp(float ramp);
         void set_vel_ramp(float ramp);
 
+        //
+        bool _stop = false;
+
         //指令输入
-        float _current_input = 0.0f;    //A
-        float _vel_input = 0.0f;        //rad/s
+        float _input_current = 0.0f;    //A
+        float _input_vel = 0.0f;        //rad/s
 
         //斜坡值
-        float _current_ramp = 12.5f;
-        float _vel_ramp = 2.0f*PI;
+        float _current_ramp = 5.0f;     //A/s
+        float _vel_ramp = 80;           //rad/s^2
 
         //指令输出
         float _id_set = 0.0f;
         float _iq_set = 0.0f;
         float _phase = 0.0f;            //rad
+        float _cur_vel = 0.0f;
         float _phase_vel = 0.0f;        //rad/s
 
         Axis* _axis = nullptr;

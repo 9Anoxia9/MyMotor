@@ -51,6 +51,14 @@ public:
 
         void pwm_update(uint32_t output_timestamp);
 
+        PhaseCtrlLaw* get_ctrl_law(){
+            if(_ctrl_law == &_vf_open_control_law){
+                return &_vf_open_control_law;
+            }else{
+                return &_current_control_law;
+            }
+        }
+
         Config_t  _config;
 
         //测量校准电流值
@@ -135,22 +143,22 @@ static inline float* get_motor_iq_set(Motor* mt){
 }
 
 static inline float* get_motor_id_feedback(Motor* mt){
-        float* ptr_r = &(mt->_current_control_law._id_feedback);
+        float* ptr_r = &(mt->get_ctrl_law()->_id_feedback);
         return ptr_r;
 }
 
 static inline float* get_motor_iq_feedback(Motor* mt){
-        float* ptr_r = &(mt->_current_control_law._iq_feedback);
+        float* ptr_r = &(mt->get_ctrl_law()->_iq_feedback);
         return ptr_r;
 }
 
 static inline float* get_motor_ia_feedback(Motor* mt){
-        float* ptr_r = &(mt->_current_control_law._i_alpha);
+        float* ptr_r = &(mt->get_ctrl_law()->_i_alpha);
         return ptr_r;
 }
 
 static inline float* get_motor_ib_feedback(Motor* mt){
-        float* ptr_r = &(mt->_current_control_law._i_beta);
+        float* ptr_r = &(mt->get_ctrl_law()->_i_beta);
         return ptr_r;
 }
 

@@ -45,24 +45,54 @@ void OpenloopVF::set_vel_ramp(float ramp){
 }
 
 
-
-
 void OpenloopIF::update(){
      
-    _iq_set = std::clamp(_current_input,_iq_set - _current_ramp*CTRL_DT, \
-                                                _iq_set + _current_ramp*CTRL_DT);
-    _phase_vel = std::clamp(_vel_input,_phase_vel - _vel_ramp * CTRL_DT, \
-                                                _phase_vel + _vel_ramp * CTRL_DT);
-    _phase += _phase_vel * _axis->_mt._config.pole_pair * CTRL_DT;
+    if(_input_current == 0.0f && _input_vel == 0.0f){
+        if(_cur_vel){
+            _stop = true;
+        }
+    }
+    
+    if(_stop == false){
+        _iq_set = std::clamp(_input_current,_iq_set - _current_ramp*CTRL_DT, \
+                                                    _iq_set + _current_ramp*CTRL_DT);
+    }
+    _id_set = 0.0f;
+    
+    _cur_vel = std::clamp(_input_vel,_cur_vel - _vel_ramp * CTRL_DT, \
+                                                _cur_vel + _vel_ramp * CTRL_DT);
+    if(_stop){
+        if(_cur_vel == 0.0f){
+            _stop = false;
+        }
+    }
+
+    _phase_vel =  _cur_vel * _axis->_mt._config.pole_pair;                                           
+    _phase += _phase_vel * CTRL_DT;
     _phase = wrap_pi(_phase);
 }
 
 void OpenloopIF::set_current_input(float current){
-    _current_input = current;
+    if(current == 0.0f){
+        _input_current = 0.0f;
+        _input_vel = 0.0f;
+    }else{
+        _input_current = current;
+    }
 }
 
 void OpenloopIF::set_vel_input(float vel){
-    _vel_input = 2.0f * PI * vel;
+    if(vel == 0.0f){
+        _input_vel = 0.0f;
+        _input_current = 0.0f;
+    }else{
+        _input_vel = 2.0f * PI * vel;
+        CRITICAL_SECTION{
+            if(_stop){
+                _stop = false;
+            }
+        }
+    }
 }
 
 void OpenloopIF::set_current_ramp(float ramp){

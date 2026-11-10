@@ -29,10 +29,9 @@ void Osc::update(){
         }
         if(_cnt[i] < CHANNEL_DATA_SIZE){
             _sample_data[i][_cnt[i]] = (*_data_src[i]);
-            _cnt[i] +=1;
+            _cnt[i] += 1;
         }else{
             full_ch_num++;
-            _cnt[i] = 0;
         }
     }
 
@@ -62,9 +61,6 @@ bool Osc::done(){
 
     CRITICAL_SECTION{
         done = _done;
-        if(_done){
-            _done = false;
-        }
     }
 
     return done;

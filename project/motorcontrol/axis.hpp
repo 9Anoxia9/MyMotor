@@ -25,6 +25,7 @@ public:
             _encoder.axis = this;
             _mt.axis = this;
             _VF_openloop_controller._axis = this;
+            _IF_openloop_controller._axis = this;
             _control._axis = this;
         }
 

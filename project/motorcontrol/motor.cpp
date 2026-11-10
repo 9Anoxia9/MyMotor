@@ -138,9 +138,9 @@ void Motor::update(){
         torque *= _config.torque_dir;
         _iq_set = torque/_config.tuque_const;
         _id_set = 0.0f;
-    }else if(_id_src != nullptr){   //IF
+    }else if(_iq_src != nullptr){   //IF
         _id_set = *_id_src;
-        _iq_set = 0.0f;
+        _iq_set = *_iq_src;
     }
     
     if(_ctrl_law == &_current_control_law){
@@ -162,7 +162,7 @@ void Motor::pwm_update(uint32_t output_timestamp){
     //然后调用SVPWM,输入mod_a、mod_b
     auto [tU,tV,tW,success] = SVPWM(mod_alpha_beta.mod_a,mod_alpha_beta.mod_b);
 
-   /*if(!(tU == 0.5f && tV == 0.5f && tW == 0.5f)){
+   if(!(tU == 0.5f && tV == 0.5f && tW == 0.5f)){
         static uint8_t comp_u_on = false,comp_v_on = false,comp_w_on = false;
         
 
@@ -187,7 +187,7 @@ void Motor::pwm_update(uint32_t output_timestamp){
             float tw_comp = deadtime_comp * std::clamp(_measure_i->iw / 0.05f, -1.0f, 1.0f);;
             tW -= tw_comp;
         }
-    }*/
+    }
     
     
     if(!success){

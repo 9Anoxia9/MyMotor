@@ -335,7 +335,7 @@ void Ctrl_Loop_Handler(){
     
     mt.dc_cali_update(current0);
 
-    mt.pwm_update(_timestamp + 5*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
+    mt.pwm_update(_timestamp + 3*TIM1_8_PERIOD*(TIM1_8_RPR+1) - TIM1_CNT_START);
     //gpios[CLK_IO].write(0);
 }
 

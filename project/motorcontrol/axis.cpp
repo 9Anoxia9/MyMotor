@@ -24,13 +24,15 @@ void Axis::run_IF_openloop(){
     _mt._current_control_law._phase_vel_src = &_IF_openloop_controller._phase_vel;
 
     _mt._id_src = &_IF_openloop_controller._id_set;
+    _mt._iq_src = &_IF_openloop_controller._iq_set;
+    
     _mt._phase_vel_src = &_IF_openloop_controller._phase_vel;
 
     _mt._current_control_law._vd_set_src = &_mt._vd_set;
     _mt._current_control_law._vq_set_src = &_mt._vq_set;
 
-    _IF_openloop_controller._current_input = 0.0f;
-    _IF_openloop_controller._vel_input = 0.0f;
+    _IF_openloop_controller._input_current = 0.0f;
+    _IF_openloop_controller._input_vel = 0.0f;
     _IF_openloop_controller._id_set = 0.0f;
     _IF_openloop_controller._iq_set = 0.0f;
     _IF_openloop_controller._phase_vel = 0.0f;
